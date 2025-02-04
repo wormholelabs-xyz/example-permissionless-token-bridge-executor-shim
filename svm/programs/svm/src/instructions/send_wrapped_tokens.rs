@@ -14,7 +14,7 @@ use wormhole_anchor_sdk::{
 use crate::{
     error,
     ext::make_vaa_v1_request,
-    state::{ForeignContract, SenderConfig, SEED_PREFIX_TMP},
+    state::{SenderConfig, SEED_PREFIX_TMP},
     CHAIN_ID,
 };
 
@@ -69,12 +69,6 @@ pub fn transfer_wrapped<'info>(
 }
 
 #[derive(Accounts)]
-#[instruction(
-    nonce: u32,
-    amount: u64,
-    recipient_address: [u8; 32],
-    recipient_chain: u16,
-)]
 pub struct SendWrappedTokens<'info> {
     #[account(mut)]
     /// Payer will pay Wormhole fee to transfer tokens and create temporary
@@ -87,16 +81,6 @@ pub struct SendWrappedTokens<'info> {
     )]
     /// Sender Config account. Acts as the Token Bridge sender PDA. Mutable.
     pub config: Box<Account<'info, SenderConfig>>,
-
-    #[account(
-        seeds = [
-            ForeignContract::SEED_PREFIX,
-            &recipient_chain.to_le_bytes()[..]
-        ],
-        bump = foreign_contract.bump,
-    )]
-    /// Foreign Contract account. This is the address the execution is requested for. Read-only.
-    pub foreign_contract: Box<Account<'info, ForeignContract>>,
 
     #[account(
         mut,
@@ -155,14 +139,14 @@ pub struct SendWrappedTokens<'info> {
     pub token_bridge_wrapped_meta: Account<'info, token_bridge::WrappedMeta>,
 
     #[account(mut)]
-    /// Token Bridge config. Mutable.
+    /// CHECK: Token Bridge config. Mutable.
     pub token_bridge_config: UncheckedAccount<'info>,
 
     /// CHECK: Token Bridge authority signer. Read-only.
     pub token_bridge_authority_signer: UncheckedAccount<'info>,
 
     #[account(mut)]
-    /// Wormhole bridge data. Mutable.
+    /// CHECK: Wormhole bridge data. Mutable.
     pub wormhole_bridge: Box<Account<'info, wormhole::BridgeData>>,
 
     #[account(mut)]
@@ -179,7 +163,7 @@ pub struct SendWrappedTokens<'info> {
     pub token_bridge_sequence: UncheckedAccount<'info>,
 
     #[account(mut)]
-    /// Wormhole fee collector. Mutable.
+    /// CHECK: Wormhole fee collector. Mutable.
     pub wormhole_fee_collector: Account<'info, wormhole::FeeCollector>,
 
     /// System program.
@@ -210,6 +194,7 @@ pub fn send_wrapped_tokens(
     amount: u64,
     recipient_address: [u8; 32],
     recipient_chain: u16,
+    destination_shim: [u8; 32],
     exec_amount: u64,
     signed_quote_bytes: Vec<u8>,
     relay_instructions: Vec<u8>,
@@ -287,7 +272,7 @@ pub fn send_wrapped_tokens(
         ),
         nonce,
         amount,
-        ctx.accounts.foreign_contract.address,
+        recipient_address,
         recipient_chain,
         0,
     )?;
@@ -318,7 +303,7 @@ pub fn send_wrapped_tokens(
         ),
         exec_amount,
         recipient_chain,
-        ctx.accounts.foreign_contract.address,
+        destination_shim,
         ctx.accounts.payer.key(),
         signed_quote_bytes,
         make_vaa_v1_request(

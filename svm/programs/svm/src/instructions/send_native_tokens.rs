@@ -14,7 +14,7 @@ use wormhole_anchor_sdk::{
 use crate::{
     error,
     ext::make_vaa_v1_request,
-    state::{ForeignContract, SenderConfig, SEED_PREFIX_TMP},
+    state::{SenderConfig, SEED_PREFIX_TMP},
     CHAIN_ID,
 };
 
@@ -69,12 +69,6 @@ pub fn transfer_native<'info>(
 }
 
 #[derive(Accounts)]
-#[instruction(
-    nonce: u32,
-    amount: u64,
-    recipient_address: [u8; 32],
-    recipient_chain: u16,
-)]
 pub struct SendNativeTokens<'info> {
     /// Payer will pay Wormhole fee to transfer tokens and create temporary
     /// token account.
@@ -88,16 +82,6 @@ pub struct SendNativeTokens<'info> {
     /// Sender Config account. Acts as the signer for the Token Bridge token
     /// transfer. Read-only.
     pub config: Box<Account<'info, SenderConfig>>,
-
-    #[account(
-        seeds = [
-            ForeignContract::SEED_PREFIX,
-            &recipient_chain.to_le_bytes()[..]
-        ],
-        bump = foreign_contract.bump,
-    )]
-    /// Foreign Contract account. This is the address the execution is requested for. Read-only.
-    pub foreign_contract: Box<Account<'info, ForeignContract>>,
 
     #[account(mut)]
     /// Mint info. This is the SPL token that will be bridged over to the
@@ -136,8 +120,8 @@ pub struct SendNativeTokens<'info> {
     /// Token Bridge program.
     pub token_bridge_program: Program<'info, TokenBridge>,
 
-    /// Token Bridge config. Read-only.
-    pub token_bridge_config: Account<'info, token_bridge::Config>,
+    /// CHECK: Token Bridge config. Read-only.
+    pub token_bridge_config: UncheckedAccount<'info>,
 
     #[account(
         mut,
@@ -158,7 +142,7 @@ pub struct SendNativeTokens<'info> {
     pub token_bridge_custody_signer: UncheckedAccount<'info>,
 
     #[account(mut)]
-    /// Wormhole bridge data. Mutable.
+    /// CHECK: Wormhole bridge data. Mutable.
     pub wormhole_bridge: UncheckedAccount<'info>,
 
     #[account(mut)]
@@ -175,7 +159,7 @@ pub struct SendNativeTokens<'info> {
     pub token_bridge_sequence: UncheckedAccount<'info>,
 
     #[account(mut)]
-    /// Wormhole fee collector. Mutable.
+    /// CHECK: Wormhole fee collector. Mutable.
     pub wormhole_fee_collector: UncheckedAccount<'info>,
 
     /// System program.
@@ -206,6 +190,7 @@ pub fn send_native_tokens(
     amount: u64,
     recipient_address: [u8; 32],
     recipient_chain: u16,
+    destination_shim: [u8; 32],
     exec_amount: u64,
     signed_quote_bytes: Vec<u8>,
     relay_instructions: Vec<u8>,
@@ -298,7 +283,7 @@ pub fn send_native_tokens(
         ),
         nonce,
         truncated_amount,
-        ctx.accounts.foreign_contract.address,
+        recipient_address,
         recipient_chain,
         0,
     )?;
@@ -329,7 +314,7 @@ pub fn send_native_tokens(
         ),
         exec_amount,
         recipient_chain,
-        ctx.accounts.foreign_contract.address,
+        destination_shim,
         ctx.accounts.payer.key(),
         signed_quote_bytes,
         make_vaa_v1_request(

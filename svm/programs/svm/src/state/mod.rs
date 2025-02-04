@@ -1,6 +1,3 @@
-mod foreign_contract;
-pub use foreign_contract::*;
-
 mod sender_config;
 pub use sender_config::*;
 
