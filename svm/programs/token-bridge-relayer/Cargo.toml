@@ -1,18 +1,18 @@
 [package]
-name = "svm"
-version = "0.1.0"
+name = "token_bridge_relayer"
+version = "0.3.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "svm"
+name = "token_bridge_relayer"
 
 [features]
 default = ["mainnet"]
 mainnet = ["wormhole-anchor-sdk/mainnet"]
 testnet = ["wormhole-anchor-sdk/solana-devnet"]
-devnet = ["wormhole-anchor-sdk/tilt-devnet"]
+localnet = ["wormhole-anchor-sdk/tilt-devnet"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -21,7 +21,6 @@ idl-build = [
     "anchor-lang/idl-build",
     "anchor-spl/idl-build",
     "wormhole-anchor-sdk/idl-build",
-    "wormhole-anchor-sdk/mainnet"
 ]
 
 [dependencies]

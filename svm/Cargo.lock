@@ -2295,15 +2295,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
 
 [[package]]
-name = "svm"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "wormhole-anchor-sdk",
-]
-
-[[package]]
 name = "syn"
 version = "1.0.109"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2399,6 +2390,15 @@ name = "tinyvec_macros"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
+
+[[package]]
+name = "token_bridge_relayer"
+version = "0.3.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "wormhole-anchor-sdk",
+]
 
 [[package]]
 name = "toml"

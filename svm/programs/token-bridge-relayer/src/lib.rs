@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self};
 
-declare_id!("Gfo1Jn4zHvc8BBGWNPQpNDZob5DsG2bhmS4wEA2GKFx6");
+declare_id!("Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah");
 
 // TODO: cfg_if
 pub const OUR_CHAIN: u16 = 1;
@@ -21,7 +21,7 @@ pub use message::*;
 pub mod utils;
 
 #[program]
-pub mod svm {
+pub mod token_bridge_relayer {
     use super::*;
 
     /// Permissionlessly initializes the sender config PDA. This avoids having to re-derive the bump in later instructions.
