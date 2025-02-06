@@ -1,3 +1,6 @@
+mod redeemer_config;
+pub use redeemer_config::*;
+
 mod sender_config;
 pub use sender_config::*;
 

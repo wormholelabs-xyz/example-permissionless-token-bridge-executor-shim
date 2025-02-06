@@ -1,8 +1,8 @@
 mod initialize;
 pub use initialize::*;
 
-mod send_native_tokens;
-pub use send_native_tokens::*;
+mod complete_transfer_with_relay;
+pub use complete_transfer_with_relay::*;
 
-mod send_wrapped_tokens;
-pub use send_wrapped_tokens::*;
+mod transfer_tokens_with_relay;
+pub use transfer_tokens_with_relay::*;

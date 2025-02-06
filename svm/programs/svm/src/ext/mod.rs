@@ -1,4 +1,4 @@
-const REQ_VAA_V1: &'static [u8; 4] = b"ERV1";
+const REQ_VAA_V1: &[u8; 4] = b"ERV1";
 
 pub fn make_vaa_v1_request(chain: u16, address: [u8; 32], sequence: u64) -> Vec<u8> {
     let mut out = Vec::with_capacity({

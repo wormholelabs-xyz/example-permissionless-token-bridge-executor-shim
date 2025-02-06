@@ -20,7 +20,8 @@ no-log-ix-name = []
 idl-build = [
     "anchor-lang/idl-build",
     "anchor-spl/idl-build",
-    "wormhole-anchor-sdk/idl-build"
+    "wormhole-anchor-sdk/idl-build",
+    "wormhole-anchor-sdk/mainnet"
 ]
 
 [dependencies]
