@@ -263,7 +263,7 @@ contract TokenBridgeRelayer is TokenBridgeRelayerGetters, TokenBridgeRelayerMess
      * - the recipient attempts to swap native assets when performing a self redemption
      * @param encodedTransferMessage Attested `TransferWithPayload` wormhole message.
      */
-    function completeTransferWithRelay(bytes calldata encodedTransferMessage) public payable {
+    function receiveMessage(bytes calldata encodedTransferMessage) public payable {
         // complete the transfer by calling the token bridge
         (bytes memory payload, uint256 amount, address token) = _completeTransfer(encodedTransferMessage);
 
