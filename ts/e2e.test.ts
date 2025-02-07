@@ -6,6 +6,7 @@ import { avalancheFuji } from "viem/chains";
 import { DEPLOYMENTS } from ".";
 import { fetchEstimate, fetchQuote } from "./executor/fetch";
 import { encodeRelayInstructions } from "./executor/relayInstructions";
+import { approve, transfer as evmTransfer } from "./evm";
 import { transfer as svmTransfer } from "./svm";
 
 const envStringRequired = (name: string): string => {
@@ -48,15 +49,14 @@ setProvider(provider);
 const ETH_KEY = env0xStringRequired(`ETH_KEY`);
 
 const eth_account = privateKeyToAccount(ETH_KEY);
-const evm_chain = avalancheFuji;
 const evm_rpc = "https://avalanche-fuji-c-chain-rpc.publicnode.com";
-
-const token = "So11111111111111111111111111111111111111112";
 
 const addressToBytes32 = (a: `0x${string}`): Uint8Array =>
   new Uint8Array(Buffer.from(a.substring(2).padStart(64, "0"), "hex"));
 
-(async () => {
+async function testSolanaToAvalanche() {
+  const token = "So11111111111111111111111111111111111111112";
+
   const dstChain: Chain = "Avalanche";
   const dstChainId = chainToChainId(dstChain);
   const dstDeployment = DEPLOYMENTS.Testnet?.Avalanche;
@@ -71,6 +71,7 @@ const addressToBytes32 = (a: `0x${string}`): Uint8Array =>
     { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
   ]);
   const estimate = await fetchEstimate(EXECUTOR_URL, quote, relayInstructions);
+  console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
 
   const tx = await svmTransfer(
     1000n,
@@ -90,4 +91,71 @@ const addressToBytes32 = (a: `0x${string}`): Uint8Array =>
   console.log(
     `http://localhost:3000/v0/status/0001${bs58.decode(tx).toString("hex")}`
   );
+}
+
+async function testAvalancheToSolana() {
+  const token = "0xb10563644a6AB8948ee6d7f5b0a1fb15AaEa1E03";
+
+  const srcDeployment = DEPLOYMENTS.Testnet?.Avalanche;
+  if (!srcDeployment) {
+    throw new Error(`No deployment on Avalanche`);
+  }
+  const dstChain: Chain = "Solana";
+  const dstChainId = chainToChainId(dstChain);
+  const dstDeployment = DEPLOYMENTS.Testnet?.Solana;
+  if (!dstDeployment) {
+    throw new Error(`No deployment on ${dstChain}`);
+  }
+  // TODO: sdk magic for this
+  const dstProgram = new web3.PublicKey(dstDeployment);
+  const dstTransferRecipient = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("redeemer")],
+    dstProgram
+  )[0];
+
+  const quote = await fetchQuote(EXECUTOR_URL, "Avalanche", "Solana");
+  const relayInstructions = encodeRelayInstructions([
+    { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
+  ]);
+  const estimate = await fetchEstimate(EXECUTOR_URL, quote, relayInstructions);
+  console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
+
+  // const approvalTx = await approve(
+  //   eth_account,
+  //   avalancheFuji,
+  //   evm_rpc,
+  //   srcDeployment as `0x${string}`,
+  //   token,
+  //   100n
+  // );
+  // console.log(`https://testnet.snowtrace.io/tx/${approvalTx}?chainid=43113`);
+
+  const tx = await evmTransfer(
+    eth_account,
+    avalancheFuji,
+    evm_rpc,
+    srcDeployment as `0x${string}`,
+    token,
+    100n,
+    dstChainId,
+    `0x${payer.publicKey.toBuffer().toString("hex")}`,
+    0,
+    `0x${dstTransferRecipient.toBuffer().toString("hex")}`,
+    `0x${dstProgram.toBuffer().toString("hex")}`,
+    estimate,
+    quote,
+    relayInstructions
+  );
+  console.log(`https://testnet.snowtrace.io/tx/${tx}?chainid=43113`);
+  console.log(
+    `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`
+  );
+  console.log(
+    `http://localhost:3000/v0/status/0006${tx.substring(2)}0000000000000000000000000000000000000000000000000000000000000007`
+  );
+}
+
+(async () => {
+  // await testSolanaToAvalanche();
+  await testAvalancheToSolana();
 })();
