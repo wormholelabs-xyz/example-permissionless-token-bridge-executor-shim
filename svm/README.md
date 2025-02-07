@@ -37,13 +37,15 @@ See [Tests](#tests)
 ### Wormhole Testnet / Solana Devnet
 
 ```bash
-anchor deploy --provider.cluster devnet --provider.wallet ~/.config/solana/your-key.json -p <PROGRAM_NAME>
+anchor deploy --provider.cluster devnet --provider.wallet ~/.config/solana/your-key.json
+anchor migrate --provider.cluster devnet --provider.wallet ~/.config/solana/your-key.json
 ```
 
 ### Mainnet
 
 ```bash
-anchor deploy --provider.cluster mainnet --provider.wallet ~/.config/solana/your-key.json -p <PROGRAM_NAME>
+anchor deploy --provider.cluster mainnet --provider.wallet ~/.config/solana/your-key.json
+anchor migrate --provider.cluster mainnet --provider.wallet ~/.config/solana/your-key.json
 ```
 
 ## Upgrading
