@@ -6,8 +6,14 @@ import { avalancheFuji } from "viem/chains";
 import { DEPLOYMENTS } from ".";
 import { fetchEstimate, fetchQuote } from "./executor/fetch";
 import { encodeRelayInstructions } from "./executor/relayInstructions";
-import { approve, transfer as evmTransfer } from "./evm";
-import { transfer as svmTransfer } from "./svm";
+import {
+  approve,
+  transfer as evmTransfer,
+  waitForTransactionReceipt,
+} from "./evm";
+import { redeem, transfer as svmTransfer } from "./svm";
+import { SolanaWormholeCore } from "@wormhole-foundation/sdk-solana-core";
+import { deserialize } from "@wormhole-foundation/sdk-definitions";
 
 const envStringRequired = (name: string): string => {
   let s = process.env[name];
@@ -51,8 +57,9 @@ const ETH_KEY = env0xStringRequired(`ETH_KEY`);
 const eth_account = privateKeyToAccount(ETH_KEY);
 const evm_rpc = "https://avalanche-fuji-c-chain-rpc.publicnode.com";
 
-const addressToBytes32 = (a: `0x${string}`): Uint8Array =>
-  new Uint8Array(Buffer.from(a.substring(2).padStart(64, "0"), "hex"));
+const addressToBytes32 = (a: `0x${string}`): number[] => [
+  ...Buffer.from(a.substring(2).padStart(64, "0"), "hex"),
+];
 
 async function testSolanaToAvalanche() {
   const token = "So11111111111111111111111111111111111111112";
@@ -108,10 +115,6 @@ async function testAvalancheToSolana() {
   }
   // TODO: sdk magic for this
   const dstProgram = new web3.PublicKey(dstDeployment);
-  const dstTransferRecipient = web3.PublicKey.findProgramAddressSync(
-    [Buffer.from("redeemer")],
-    dstProgram
-  )[0];
 
   const quote = await fetchQuote(EXECUTOR_URL, "Avalanche", "Solana");
   const relayInstructions = encodeRelayInstructions([
@@ -120,15 +123,17 @@ async function testAvalancheToSolana() {
   const estimate = await fetchEstimate(EXECUTOR_URL, quote, relayInstructions);
   console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
 
-  // const approvalTx = await approve(
-  //   eth_account,
-  //   avalancheFuji,
-  //   evm_rpc,
-  //   srcDeployment as `0x${string}`,
-  //   token,
-  //   100n
-  // );
-  // console.log(`https://testnet.snowtrace.io/tx/${approvalTx}?chainid=43113`);
+  const approvalTx = await approve(
+    eth_account,
+    avalancheFuji,
+    evm_rpc,
+    srcDeployment as `0x${string}`,
+    token,
+    100n
+  );
+  console.log(`https://testnet.snowtrace.io/tx/${approvalTx}?chainid=43113`);
+  console.log(`waiting for approval confirmation...`);
+  await waitForTransactionReceipt(avalancheFuji, evm_rpc, approvalTx);
 
   const tx = await evmTransfer(
     eth_account,
@@ -140,7 +145,7 @@ async function testAvalancheToSolana() {
     dstChainId,
     `0x${payer.publicKey.toBuffer().toString("hex")}`,
     0,
-    `0x${dstTransferRecipient.toBuffer().toString("hex")}`,
+    `0x${dstProgram.toBuffer().toString("hex")}`,
     `0x${dstProgram.toBuffer().toString("hex")}`,
     estimate,
     quote,
@@ -155,7 +160,44 @@ async function testAvalancheToSolana() {
   );
 }
 
+async function testDirectSolanaRedeem() {
+  // https://wormholescan.io/#/tx/0x3b06d6ae92cf1cc6312df9412be81c4cf3c1a70dad4f42a8d524db2c2f53350f?network=Testnet&view=overview
+  const VAA = deserialize(
+    "Uint8Array",
+    Buffer.from(
+      "AQAAAAABAO8QSEQuF9qjEd5b1jfzw2U7RriEkFuA5/CeMMEi7nwmQK+GW/RS+/8SbQMl9i6iB07xp/i0e+Ps3cRif5PyNhoBZ6fepAAAAAAABgAAAAAAAAAAAAAAAGHkTlBspWWebAu6m2eFhvotcpdWAAAAAAAASnsBAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEAAfq1IUF37mqrWWu1nwOFOzFjvJQmSYsTI/5rVHHDSJFeAAEAAAAAAAAAAAAAAACZ0h3dM0dyNj77Y66ifWVpp0cUkYNxi37Ilhe3BAaF4BvcygMhQCKYDarpE0Dgw/hAwAXv",
+      "base64"
+    )
+  );
+  console.log(Buffer.from(VAA.hash).toString("hex"));
+  const token = "So11111111111111111111111111111111111111112";
+  const wh = new SolanaWormholeCore("Testnet", "Solana", connection, {
+    coreBridge: "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
+  });
+  const txs = wh.verifyMessage(payer.publicKey, VAA);
+  for await (const tx of txs) {
+    console.log("sending tx...");
+    const sig = await provider.sendAndConfirm(
+      tx.transaction.transaction,
+      tx.transaction.signers,
+      { commitment: "confirmed" }
+    );
+    console.log(`https://explorer.solana.com/tx/${sig}?cluster=devnet`);
+  }
+  console.log("redeeming...");
+  const tx = await redeem(
+    payer.publicKey,
+    [...VAA.hash],
+    token,
+    chainToChainId(VAA.emitterChain),
+    VAA.emitterAddress.toUint8Array(),
+    VAA.sequence
+  );
+  console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
+}
+
 (async () => {
   // await testSolanaToAvalanche();
   await testAvalancheToSolana();
+  // await testDirectSolanaRedeem();
 })();

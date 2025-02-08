@@ -149,4 +149,8 @@ pub enum TokenBridgeRelayerError {
     #[msg("InsufficientFunds")]
     /// Insufficient funds for outbound transfer.
     InsufficientFunds,
+
+    #[msg("FailedToParseVaaBody")]
+    /// Failed to parse the VAA body.
+    FailedToParseVaaBody,
 }

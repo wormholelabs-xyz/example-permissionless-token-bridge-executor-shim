@@ -18,10 +18,14 @@ pub mod ext;
 mod message;
 pub use message::*;
 
+pub mod payloads;
+pub mod protocol;
+
 pub mod utils;
 
 #[program]
 pub mod token_bridge_relayer {
+
     use super::*;
 
     /// Permissionlessly initializes the sender config PDA. This avoids having to re-derive the bump in later instructions.
@@ -105,5 +109,14 @@ pub mod token_bridge_relayer {
         _vaa_hash: [u8; 32],
     ) -> Result<()> {
         instructions::complete_wrapped_transfer_with_relay(ctx, _vaa_hash)
+    }
+
+    /// This instruction returns the instruction for execution based on a v1 VAA
+    /// # Arguments
+    ///
+    /// * `ctx` - `ExecuteVaaV1` context
+    /// * `vaa_body` - Body of the VAA for execution
+    pub fn execute_vaa_v1(ctx: Context<ExecuteVaaV1>, vaa_body: Vec<u8>) -> Result<Ix> {
+        instructions::execute_vaa_v1(ctx, vaa_body)
     }
 }

@@ -54,6 +54,18 @@ export async function approve(
   return await client.writeContract(request);
 }
 
+export async function waitForTransactionReceipt(
+  chain: Chain,
+  rpc: string,
+  hash: `0x${string}`
+) {
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(rpc),
+  });
+  return publicClient.waitForTransactionReceipt({ hash });
+}
+
 export async function transfer(
   account: PrivateKeyAccount,
   chain: Chain,
