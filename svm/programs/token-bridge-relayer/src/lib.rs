@@ -18,9 +18,6 @@ pub mod ext;
 mod message;
 pub use message::*;
 
-pub mod payloads;
-pub mod protocol;
-
 pub mod utils;
 
 #[program]

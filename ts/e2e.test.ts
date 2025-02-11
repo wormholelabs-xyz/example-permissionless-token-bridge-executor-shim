@@ -197,7 +197,7 @@ async function testDirectSolanaRedeem() {
 }
 
 (async () => {
-  // await testSolanaToAvalanche();
+  await testSolanaToAvalanche();
   await testAvalancheToSolana();
   // await testDirectSolanaRedeem();
 })();

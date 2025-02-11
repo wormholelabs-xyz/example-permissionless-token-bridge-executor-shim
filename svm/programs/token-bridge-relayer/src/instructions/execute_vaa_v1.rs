@@ -4,12 +4,11 @@ use wormhole_anchor_sdk::{
     token_bridge::program::TokenBridge,
     wormhole::{program::Wormhole, SEED_PREFIX_POSTED_VAA},
 };
+use wormhole_raw_vaas::{token_bridge::TokenBridgePayload, Body};
 
 use crate::{
     error::TokenBridgeRelayerError,
     instruction::{CompleteNativeTransferWithRelay, CompleteWrappedTransferWithRelay},
-    payloads::TokenBridgePayload,
-    protocol::Body,
     state::{RedeemerConfig, SEED_PREFIX_TMP},
     OUR_CHAIN,
 };
