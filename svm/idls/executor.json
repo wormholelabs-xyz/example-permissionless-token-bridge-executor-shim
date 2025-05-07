@@ -1,5 +1,5 @@
 {
-  "address": "Ax7mtQPbNPQmghd7C3BHrMdwwmkAXBDq7kNGfXNcc7dg",
+  "address": "execXUrAsMnqMmTHj5m7N1YQgsDz3cwGLYCYyuDRciV",
   "metadata": {
     "name": "executor",
     "version": "0.1.0",
@@ -9,16 +9,7 @@
   "instructions": [
     {
       "name": "request_for_execution",
-      "discriminator": [
-        109,
-        107,
-        87,
-        37,
-        151,
-        192,
-        119,
-        115
-      ],
+      "discriminator": [109, 107, 87, 37, 151, 192, 119, 115],
       "accounts": [
         {
           "name": "payer",
@@ -90,10 +81,7 @@
           {
             "name": "dst_addr",
             "type": {
-              "array": [
-                "u8",
-                32
-              ]
+              "array": ["u8", 32]
             }
           },
           {
