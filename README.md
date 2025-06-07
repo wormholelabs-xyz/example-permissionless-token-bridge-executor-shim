@@ -2,7 +2,7 @@
 
 ## Objective
 
-Replace the custom off-chain [Token Bridge Relayers](https://github.com/wormhole-foundation/example-token-bridge-relayer/tree/main) with a solution that reuses the new [Executor](https://github.com/wormholelabs-xyz/example-messaging-executor) infrastructure. 
+Replace the custom off-chain [Token Bridge Relayers](https://github.com/wormhole-foundation/example-token-bridge-relayer/tree/main) with a solution that reuses the new [Executor](https://github.com/wormholelabs-xyz/example-messaging-executor) infrastructure.
 
 ## Background
 
@@ -20,7 +20,7 @@ The existing Token Bridge Relayer design requires an administrator to run an off
 
 ## Non-Goals
 
-- *Guaranteed* delivery or *guaranteed* gas drop-off.
+- _Guaranteed_ delivery or _guaranteed_ gas drop-off.
 - On-chain integration.
 - Pay fees in transferred tokens.
 
@@ -44,22 +44,22 @@ No special off-chain Executor code is necessary, as the destination shim should 
 The following is explained in terms of the EVM contracts, but the same principles apply elsewhere. Provide an immutable contract, which contains the following functionality.
 
 1. In order to support a permissionless contract and the required Executor parameters, the function would take a combination of the existing Token Bridge Relayer [`transferTokensWithRelay`](https://github.com/wormhole-foundation/example-token-bridge-relayer/blob/d9d17254dae48c985fe6b58e2987e2135d1e8c65/evm/src/token-bridge-relayer/TokenBridgeRelayer.sol#L99C14-L99C37) and Executor [`requestExecution`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/57c49d9ad7c410b9a7f938e07a5444f07872159d/evm/src/Executor.sol#L22) functions. `toNativeTokenAmount` can be omitted since this is using Executor, and `requestBytes` will be formed on-chain. The payload 3 recipient and destination address for Executor can be provided by the caller, in order to keep this contract permissionless. This might look like:
-    
-    ```solidity
-    function transferTokensWithRelay(
-      address token,
-      uint256 amount,
-      uint16  targetChain,
-      bytes32 targetRecipient,
-      uint32  nonce,
-      bytes32 dstTransferRecipient, // token bridge payload 3 recipient
-      bytes32 dstExecutionAddress,  // executor destination address
-      address refundAddr,
-      bytes calldata signedQuoteBytes,
-      bytes calldata relayInstructions
-    ) public payable nonReentrant notPaused returns (uint64 messageSequence)
-    ```
-    
+
+   ```solidity
+   function transferTokensWithRelay(
+     address token,
+     uint256 amount,
+     uint16  targetChain,
+     bytes32 targetRecipient,
+     uint32  nonce,
+     bytes32 dstTransferRecipient, // token bridge payload 3 recipient
+     bytes32 dstExecutionAddress,  // executor destination address
+     address refundAddr,
+     bytes calldata signedQuoteBytes,
+     bytes calldata relayInstructions
+   ) public payable nonReentrant notPaused returns (uint64 messageSequence)
+   ```
+
 2. Call `transferTokensWithPayload` on the Token Bridge, passing through user designated tokens. This returns a sequence number. The transfer payload will vary from the existing Token Bridge Relayer contracts, in that it will only contain the `targetRecipient`.
 3. Request execution to the destination chain and the specified destination execution address for the resulting VAA ID using [`makeVAAV1Request`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/57c49d9ad7c410b9a7f938e07a5444f07872159d/evm/src/libraries/ExecutorMessages.sol#L36) and [`requestExecution`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/main/evm/src/Executor.sol#L22).
 
@@ -101,3 +101,9 @@ This is most easily tested with the testnet deployment of the Token Bridge and a
 This approach allows for the relaying of arbitrary Token Bridge tokens by paying the Executor in native gas. It can do this with a slight increase in on-chain complexity (primarily, one additional call stack) without the addition of any off-chain complexity.
 
 When compared to the existing Token Bridge Relayer, instead of admin-defined fees and native gas rates per specified token, it allows for an end-user choice of relay provider and arbitrary token transfers.
+
+⚠ **This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing permissions and limitations under the License.** Or plainly
+spoken - this is a very complex piece of software which targets a bleeding-edge, experimental smart contract runtime.
+Mistakes happen, and no matter how hard you try and whether you pay someone to audit it, it may eat your tokens, set
+your printer on fire or startle your cat. Cryptocurrencies are a high-risk investment, no matter how fancy.

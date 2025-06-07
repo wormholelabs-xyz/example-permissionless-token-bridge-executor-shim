@@ -1,6 +1,6 @@
 [toolchain]
-anchor_version = "0.30.1"
-solana_version = "1.18.17"
+anchor_version = "0.31.1"
+solana_version = "2.1.20"
 
 [features]
 resolution = true
@@ -13,7 +13,7 @@ token_bridge_relayer = "Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

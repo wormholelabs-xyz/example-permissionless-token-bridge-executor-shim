@@ -28,9 +28,9 @@ describe("token_bridge_relayer", () => {
     const sigLength = 66;
     const vaa_body = vaa.subarray(sigStart + sigLength * numSigners);
     const vaa_hash = keccak256(`0x${vaa_body.toString("hex")}`).substring(2);
-    const result = await program.methods.executeVaaV1(vaa_body).view();
+    const result = await program.methods.resolveExecuteVaaV1(vaa_body).view();
     const payer = new anchor.web3.PublicKey(
-      Buffer.from("payer000000000000000000000000000")
+      Buffer.from("payer_00000000000000000000000000")
     ).toString();
     const mint = new anchor.web3.PublicKey(
       "So11111111111111111111111111111111111111112"
@@ -87,10 +87,13 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
         {
-          pubkey: anchor.web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("PostedVAA"), Buffer.from(vaa_hash, "hex")],
-            wormholeProgram
-          )[0].toString(), // vaa
+          // pubkey: anchor.web3.PublicKey.findProgramAddressSync(
+          //   [Buffer.from("PostedVAA"), Buffer.from(vaa_hash, "hex")],
+          //   wormholeProgram
+          // )[0].toString(), // vaa
+          pubkey: new anchor.web3.PublicKey(
+            Buffer.from("posted_vaa_000000000000000000000")
+          ).toString(),
           isWritable: false,
           isSigner: false,
         },
@@ -180,12 +183,14 @@ describe("token_bridge_relayer", () => {
       programId: "Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah",
       data: "8f51ed856cf1be9d" + vaa_hash,
     };
-    const accts = result.accounts.map((a) => ({
+    const resolvedResult = result.resolved[0][0];
+    const firstIx = resolvedResult[0].instructions[0];
+    const accts = firstIx.accounts.map((a) => ({
       ...a,
       pubkey: a.pubkey.toString(),
     }));
     expect(accts).to.deep.equal(expectedResult.accounts);
-    expect(result.programId.toString()).to.equal(expectedResult.programId);
-    expect(result.data.toString("hex")).to.equal(expectedResult.data);
+    expect(firstIx.programId.toString()).to.equal(expectedResult.programId);
+    expect(firstIx.data.toString("hex")).to.equal(expectedResult.data);
   });
 });

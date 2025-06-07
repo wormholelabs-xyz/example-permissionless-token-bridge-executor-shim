@@ -1,5 +1,5 @@
-mod execute_vaa_v1;
-pub use execute_vaa_v1::*;
+mod resolve_execute_vaa_v1;
+pub use resolve_execute_vaa_v1::*;
 
 mod initialize;
 pub use initialize::*;

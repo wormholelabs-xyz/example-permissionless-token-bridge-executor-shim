@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self};
+use executor_account_resolver_svm::{InstructionGroups, Resolver, RESOLVER_EXECUTE_VAA_V1};
 
 declare_id!("Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah");
 
@@ -111,9 +112,13 @@ pub mod token_bridge_relayer {
     /// This instruction returns the instruction for execution based on a v1 VAA
     /// # Arguments
     ///
-    /// * `ctx` - `ExecuteVaaV1` context
+    /// * `ctx` - `ResolveExecuteVaaV1` context
     /// * `vaa_body` - Body of the VAA for execution
-    pub fn execute_vaa_v1(ctx: Context<ExecuteVaaV1>, vaa_body: Vec<u8>) -> Result<Ix> {
-        instructions::execute_vaa_v1(ctx, vaa_body)
+    #[instruction(discriminator = &RESOLVER_EXECUTE_VAA_V1)]
+    pub fn resolve_execute_vaa_v1(
+        ctx: Context<ResolveExecuteVaaV1>,
+        vaa_body: Vec<u8>,
+    ) -> Result<Resolver<InstructionGroups>> {
+        instructions::resolve_execute_vaa_v1(ctx, vaa_body)
     }
 }
