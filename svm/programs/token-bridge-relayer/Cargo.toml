@@ -1,6 +1,6 @@
 [package]
 name = "token_bridge_relayer"
-version = "0.3.0"
+version = "0.4.0"
 description = "Created with Anchor"
 edition = "2021"
 
@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["mainnet"]
+default = ["testnet"]
 mainnet = ["wormhole-anchor-sdk/mainnet"]
 testnet = ["wormhole-anchor-sdk/solana-devnet"]
 localnet = ["wormhole-anchor-sdk/tilt-devnet"]

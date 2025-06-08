@@ -17,6 +17,8 @@ import "example-messaging-executor/evm/src/libraries/ExecutorMessages.sol";
 import "./TokenBridgeRelayerMessages.sol";
 import "./TokenBridgeRelayerGetters.sol";
 
+string constant tokenBridgeRelayerVersion = "TokenBridgeRelayer-0.4.0";
+
 /**
  * @title Wormhole Token Bridge Relayer
  * @notice This contract composes on Wormhole's Token Bridge contracts to facilitate
@@ -31,7 +33,7 @@ contract TokenBridgeRelayer is
     using BytesLib for bytes;
 
     // contract version
-    string public constant VERSION = "0.3.0";
+    string public constant VERSION = tokenBridgeRelayerVersion;
 
     // Wormhole chain ID of this contract
     uint16 public immutable chainId;

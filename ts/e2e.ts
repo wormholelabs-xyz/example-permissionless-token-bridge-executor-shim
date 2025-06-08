@@ -4,7 +4,7 @@ import { Chain, chainToChainId } from "@wormhole-foundation/sdk-base";
 import { privateKeyToAccount } from "viem/accounts";
 import { avalancheFuji } from "viem/chains";
 import { DEPLOYMENTS } from ".";
-import { fetchEstimate, fetchQuote } from "./executor/fetch";
+import { fetchQuote } from "./executor/fetch";
 import { encodeRelayInstructions } from "./executor/relayInstructions";
 import {
   approve,
@@ -33,16 +33,11 @@ const env0xStringRequired = (name: string): `0x${string}` => {
 };
 
 const SOLANA_RPC_URL = "https://api.devnet.solana.com";
-const GUARDIAN_URL = "https://api.testnet.wormholescan.io";
 const EXECUTOR_URL = "http://localhost:3000";
-
-const coreBridgeAddress = new web3.PublicKey(
-  "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
-);
 
 const connection = new web3.Connection(SOLANA_RPC_URL, "confirmed");
 
-const SOLANA_KEY = envStringRequired(`SOLANA_KEY`);
+const SOLANA_KEY = envStringRequired(`SVM_KEY`);
 
 const payer = web3.Keypair.fromSecretKey(
   SOLANA_KEY.endsWith(".json")
@@ -52,7 +47,7 @@ const payer = web3.Keypair.fromSecretKey(
 const provider = new AnchorProvider(connection, new Wallet(payer));
 setProvider(provider);
 
-const ETH_KEY = env0xStringRequired(`ETH_KEY`);
+const ETH_KEY = env0xStringRequired(`EVM_KEY`);
 
 const eth_account = privateKeyToAccount(ETH_KEY);
 const evm_rpc = "https://avalanche-fuji-c-chain-rpc.publicnode.com";
@@ -73,14 +68,18 @@ async function testSolanaToAvalanche() {
   // TODO: sdk magic for this
   const dstTransferRecipient = addressToBytes32(dstDeployment as `0x${string}`);
 
-  const quote = await fetchQuote(EXECUTOR_URL, "Solana", "Avalanche");
   const relayInstructions = encodeRelayInstructions([
     { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
   ]);
-  const estimate = await fetchEstimate(EXECUTOR_URL, quote, relayInstructions);
+  const { signedQuote: quote, estimatedCost: estimate } = await fetchQuote(
+    EXECUTOR_URL,
+    "Solana",
+    "Avalanche",
+    relayInstructions,
+  );
   console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
 
-  const tx = await svmTransfer(
+  const { transaction, signers } = await svmTransfer(
     1000n,
     token,
     dstChainId,
@@ -91,12 +90,18 @@ async function testSolanaToAvalanche() {
     Buffer.from(quote.substring(2), "hex"),
     Buffer.from(relayInstructions.substring(2), "hex"),
   );
+
+  transaction.sign([payer, ...signers]);
+  const tx = await connection.sendTransaction(transaction);
+
   console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
   console.log(
     `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`,
   );
   console.log(
-    `http://localhost:3000/v0/status/0001${bs58.decode(tx).toString("hex")}`,
+    `https://wormholelabs-xyz.github.io/executor-explorer/#/chain/1/tx/${tx}?endpoint=${encodeURIComponent(
+      EXECUTOR_URL,
+    )}`,
   );
 }
 
@@ -116,11 +121,19 @@ async function testAvalancheToSolana() {
   // TODO: sdk magic for this
   const dstProgram = new web3.PublicKey(dstDeployment);
 
-  const quote = await fetchQuote(EXECUTOR_URL, "Avalanche", "Solana");
   const relayInstructions = encodeRelayInstructions([
-    { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
+    {
+      type: "GasInstruction",
+      gasLimit: 1000000n,
+      msgValue: 5001n * 5n + 1200000n + 3100000n + 1500000n + 2942120n, // TODO: better values
+    },
   ]);
-  const estimate = await fetchEstimate(EXECUTOR_URL, quote, relayInstructions);
+  const { signedQuote: quote, estimatedCost: estimate } = await fetchQuote(
+    EXECUTOR_URL,
+    "Avalanche",
+    "Solana",
+    relayInstructions,
+  );
   console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
 
   const approvalTx = await approve(
@@ -156,7 +169,9 @@ async function testAvalancheToSolana() {
     `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`,
   );
   console.log(
-    `http://localhost:3000/v0/status/0006${tx.substring(2)}0000000000000000000000000000000000000000000000000000000000000007`,
+    `https://wormholelabs-xyz.github.io/executor-explorer/#/chain/6/tx/${tx}?endpoint=${encodeURIComponent(
+      EXECUTOR_URL,
+    )}`,
   );
 }
 

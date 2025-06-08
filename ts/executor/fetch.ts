@@ -5,19 +5,15 @@ export async function fetchQuote(
   url: string,
   srcChain: Chain,
   dstChain: Chain,
-): Promise<`0x${string}`> {
-  const ret = await axios.get(
-    `${url}/v0/quote/${chainToChainId(srcChain)}/${chainToChainId(dstChain)}`,
-  );
-  return ret.data.signedQuote;
-}
-export async function fetchEstimate(
-  url: string,
-  quote: `0x${string}`,
   relayInstructions: `0x${string}`,
-): Promise<bigint> {
-  const ret = await axios.get(
-    `${url}/v0/estimate/${quote}/${relayInstructions}/`,
-  );
-  return BigInt(ret.data.estimate);
+): Promise<{ signedQuote: `0x${string}`; estimatedCost: bigint }> {
+  const ret = await axios.post(`${url}/v0/quote`, {
+    srcChain: chainToChainId(srcChain),
+    dstChain: chainToChainId(dstChain),
+    relayInstructions,
+  });
+  return {
+    signedQuote: ret.data.signedQuote,
+    estimatedCost: BigInt(ret.data.estimatedCost),
+  };
 }
