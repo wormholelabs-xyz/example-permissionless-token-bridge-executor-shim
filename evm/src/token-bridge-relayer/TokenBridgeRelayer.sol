@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "example-messaging-executor/evm/src/interfaces/IExecutor.sol";
+import "example-messaging-executor/evm/src/interfaces/IVaaV1Receiver.sol";
 import "example-messaging-executor/evm/src/libraries/ExecutorMessages.sol";
 
 import "./TokenBridgeRelayerMessages.sol";
@@ -21,7 +22,12 @@ import "./TokenBridgeRelayerGetters.sol";
  * @notice This contract composes on Wormhole's Token Bridge contracts to facilitate
  * one-click transfers of Token Bridge supported assets cross chain.
  */
-contract TokenBridgeRelayer is TokenBridgeRelayerGetters, TokenBridgeRelayerMessages, ReentrancyGuard {
+contract TokenBridgeRelayer is
+    TokenBridgeRelayerGetters,
+    TokenBridgeRelayerMessages,
+    ReentrancyGuard,
+    IVaaV1Receiver
+{
     using BytesLib for bytes;
 
     // contract version
@@ -243,7 +249,7 @@ contract TokenBridgeRelayer is TokenBridgeRelayerGetters, TokenBridgeRelayerMess
             params.dstExecutionAddress,
             params.refundAddr,
             signedQuoteBytes,
-            ExecutorMessages.makeVAAV1Request(chainId, tokenBridgeEmitter, messageSequence),
+            ExecutorMessages.makeVAAv1Request(chainId, tokenBridgeEmitter, messageSequence),
             relayInstructions
         );
     }
@@ -263,7 +269,7 @@ contract TokenBridgeRelayer is TokenBridgeRelayerGetters, TokenBridgeRelayerMess
      * - the recipient attempts to swap native assets when performing a self redemption
      * @param encodedTransferMessage Attested `TransferWithPayload` wormhole message.
      */
-    function receiveMessage(bytes calldata encodedTransferMessage) public payable {
+    function executeVAAv1(bytes calldata encodedTransferMessage) public payable {
         // complete the transfer by calling the token bridge
         (bytes memory payload, uint256 amount, address token) = _completeTransfer(encodedTransferMessage);
 

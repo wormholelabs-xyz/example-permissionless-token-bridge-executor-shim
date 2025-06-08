@@ -61,7 +61,7 @@ The following is explained in terms of the EVM contracts, but the same principle
    ```
 
 2. Call `transferTokensWithPayload` on the Token Bridge, passing through user designated tokens. This returns a sequence number. The transfer payload will vary from the existing Token Bridge Relayer contracts, in that it will only contain the `targetRecipient`.
-3. Request execution to the destination chain and the specified destination execution address for the resulting VAA ID using [`makeVAAV1Request`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/57c49d9ad7c410b9a7f938e07a5444f07872159d/evm/src/libraries/ExecutorMessages.sol#L36) and [`requestExecution`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/main/evm/src/Executor.sol#L22).
+3. Request execution to the destination chain and the specified destination execution address for the resulting VAA ID using [`makeVAAv1Request`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/57c49d9ad7c410b9a7f938e07a5444f07872159d/evm/src/libraries/ExecutorMessages.sol#L36) and [`requestExecution`](https://github.com/wormholelabs-xyz/example-messaging-executor/blob/main/evm/src/Executor.sol#L22).
 
 #### Off-Chain
 
