@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self};
 use executor_account_resolver_svm::{InstructionGroups, Resolver, RESOLVER_EXECUTE_VAA_V1};
 
-declare_id!("Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah");
+declare_id!("tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf");
 
 // TODO: cfg_if
 pub const OUR_CHAIN: u16 = 1;
