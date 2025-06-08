@@ -19,11 +19,7 @@ interface ITokenBridgeRelayer {
         uint256 value;
     }
 
-    event TransferRedeemed(
-        uint16 indexed emitterChainId,
-        bytes32 indexed emitterAddress,
-        uint64 indexed sequence
-    );
+    event TransferRedeemed(uint16 indexed emitterChainId, bytes32 indexed emitterAddress, uint64 indexed sequence);
 
     event SwapExecuted(
         address indexed recipient,
@@ -117,7 +113,10 @@ interface ITokenBridgeRelayer {
 
     function relayerFee(uint16 chainId_) external view returns (uint256);
 
-    function calculateRelayerFee(uint16 targetChainId, address token, uint8 decimals) external view returns (uint256 feeInTokenDenomination);
+    function calculateRelayerFee(uint16 targetChainId, address token, uint8 decimals)
+        external
+        view
+        returns (uint256 feeInTokenDenomination);
 
     function swapRatePrecision() external view returns (uint256);
 

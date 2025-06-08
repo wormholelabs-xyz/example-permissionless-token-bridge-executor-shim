@@ -7,6 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IWETH is IERC20 {
     function deposit() external payable;
-    function withdraw(uint amount) external;
+    function withdraw(uint256 amount) external;
     function balanceOf() external returns (uint256);
 }
