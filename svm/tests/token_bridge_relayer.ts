@@ -21,7 +21,7 @@ describe("token_bridge_relayer", () => {
     // https://wormholescan.io/#/tx/0x3b06d6ae92cf1cc6312df9412be81c4cf3c1a70dad4f42a8d524db2c2f53350f?network=Testnet&view=advanced
     const vaa = Buffer.from(
       "AQAAAAABAO8QSEQuF9qjEd5b1jfzw2U7RriEkFuA5/CeMMEi7nwmQK+GW/RS+/8SbQMl9i6iB07xp/i0e+Ps3cRif5PyNhoBZ6fepAAAAAAABgAAAAAAAAAAAAAAAGHkTlBspWWebAu6m2eFhvotcpdWAAAAAAAASnsBAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEAAfq1IUF37mqrWWu1nwOFOzFjvJQmSYsTI/5rVHHDSJFeAAEAAAAAAAAAAAAAAACZ0h3dM0dyNj77Y66ifWVpp0cUkYNxi37Ilhe3BAaF4BvcygMhQCKYDarpE0Dgw/hAwAXv",
-      "base64"
+      "base64",
     );
     const sigStart = 6;
     const numSigners = vaa[5];
@@ -30,21 +30,21 @@ describe("token_bridge_relayer", () => {
     const vaa_hash = keccak256(`0x${vaa_body.toString("hex")}`).substring(2);
     const result = await program.methods.resolveExecuteVaaV1(vaa_body).view();
     const payer = new anchor.web3.PublicKey(
-      Buffer.from("payer_00000000000000000000000000")
+      Buffer.from("payer_00000000000000000000000000"),
     ).toString();
     const mint = new anchor.web3.PublicKey(
-      "So11111111111111111111111111111111111111112"
+      "So11111111111111111111111111111111111111112",
     );
     const env: string = "mainnet";
     const wormholeProgram = new anchor.web3.PublicKey(
       env === "mainnet"
         ? "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
-        : "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+        : "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
     );
     const tokenBridgeProgram = new anchor.web3.PublicKey(
       env === "mainnet"
         ? "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
-        : "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+        : "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
     );
     const expectedResult = {
       accounts: [
@@ -81,7 +81,7 @@ describe("token_bridge_relayer", () => {
         {
           pubkey: anchor.web3.PublicKey.findProgramAddressSync(
             [Buffer.from("config")],
-            tokenBridgeProgram
+            tokenBridgeProgram,
           )[0].toString(), // token_bridge_config
           isWritable: false,
           isSigner: false,
@@ -92,7 +92,7 @@ describe("token_bridge_relayer", () => {
           //   wormholeProgram
           // )[0].toString(), // vaa
           pubkey: new anchor.web3.PublicKey(
-            Buffer.from("posted_vaa_000000000000000000000")
+            Buffer.from("posted_vaa_000000000000000000000"),
           ).toString(),
           isWritable: false,
           isSigner: false,
@@ -102,7 +102,7 @@ describe("token_bridge_relayer", () => {
             [
               Buffer.from(
                 "00000000000000000000000061e44e506ca5659e6c0bba9b678586fa2d729756",
-                "hex"
+                "hex",
               ),
               (() => {
                 const buf = Buffer.alloc(2);
@@ -115,7 +115,7 @@ describe("token_bridge_relayer", () => {
                 return buf;
               })(),
             ],
-            tokenBridgeProgram
+            tokenBridgeProgram,
           )[0].toString(), // token_bridge_claim
           isWritable: true,
           isSigner: false,
@@ -130,10 +130,10 @@ describe("token_bridge_relayer", () => {
               })(),
               Buffer.from(
                 "00000000000000000000000061e44e506ca5659e6c0bba9b678586fa2d729756",
-                "hex"
+                "hex",
               ),
             ],
-            tokenBridgeProgram
+            tokenBridgeProgram,
           )[0].toString(), // token_bridge_foreign_endpoint
           isWritable: false,
           isSigner: false,
@@ -141,7 +141,7 @@ describe("token_bridge_relayer", () => {
         {
           pubkey: anchor.web3.PublicKey.findProgramAddressSync(
             [mint.toBuffer()],
-            tokenBridgeProgram
+            tokenBridgeProgram,
           )[0].toString(), // token_bridge_custody
           isWritable: true,
           isSigner: false,
@@ -149,7 +149,7 @@ describe("token_bridge_relayer", () => {
         {
           pubkey: anchor.web3.PublicKey.findProgramAddressSync(
             [Buffer.from("custody_signer")],
-            tokenBridgeProgram
+            tokenBridgeProgram,
           )[0].toString(), // token_bridge_custody_signer
           isWritable: false,
           isSigner: false,
