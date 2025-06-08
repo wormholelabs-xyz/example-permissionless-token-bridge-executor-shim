@@ -1,8 +1,8 @@
 {
-  "address": "Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah",
+  "address": "tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf",
   "metadata": {
     "name": "token_bridge_relayer",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -181,11 +181,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "system_program",
@@ -386,11 +386,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "system_program",
@@ -464,6 +464,39 @@
         }
       ],
       "args": []
+    },
+    {
+      "name": "resolve_execute_vaa_v1",
+      "docs": [
+        "This instruction returns the instruction for execution based on a v1 VAA",
+        "# Arguments",
+        "",
+        "* `ctx` - `ResolveExecuteVaaV1` context",
+        "* `vaa_body` - Body of the VAA for execution"
+      ],
+      "discriminator": [148, 184, 169, 222, 207, 8, 154, 127],
+      "accounts": [],
+      "args": [
+        {
+          "name": "vaa_body",
+          "type": "bytes"
+        }
+      ],
+      "returns": {
+        "defined": {
+          "name": "Resolver",
+          "generics": [
+            {
+              "kind": "type",
+              "type": {
+                "defined": {
+                  "name": "InstructionGroups"
+                }
+              }
+            }
+          ]
+        }
+      }
     },
     {
       "name": "transfer_native_tokens_with_relay",
@@ -633,11 +666,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "executor_program",
@@ -817,11 +850,11 @@
         },
         {
           "name": "wormhole_program",
-          "address": "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+          "address": "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
         },
         {
           "name": "token_bridge_program",
-          "address": "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+          "address": "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
         },
         {
           "name": "system_program",
@@ -1049,9 +1082,73 @@
       "code": 6036,
       "name": "InsufficientFunds",
       "msg": "InsufficientFunds"
+    },
+    {
+      "code": 6037,
+      "name": "FailedToParseVaaBody",
+      "msg": "FailedToParseVaaBody"
     }
   ],
   "types": [
+    {
+      "name": "InstructionGroup",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "instructions",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "SerializableInstruction"
+                }
+              }
+            }
+          },
+          {
+            "name": "address_lookup_tables",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InstructionGroups",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "vec": {
+              "defined": {
+                "name": "InstructionGroup"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "MissingAccounts",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "accounts",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "address_lookup_tables",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
     {
       "name": "RedeemerConfig",
       "type": {
@@ -1066,6 +1163,42 @@
       }
     },
     {
+      "name": "Resolver",
+      "generics": [
+        {
+          "kind": "type",
+          "name": "T"
+        }
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Resolved",
+            "fields": [
+              {
+                "generic": "T"
+              }
+            ]
+          },
+          {
+            "name": "Missing",
+            "fields": [
+              {
+                "defined": {
+                  "name": "MissingAccounts"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Account",
+            "fields": []
+          }
+        ]
+      }
+    },
+    {
       "name": "SenderConfig",
       "type": {
         "kind": "struct",
@@ -1074,6 +1207,52 @@
             "name": "bump",
             "docs": ["PDA bump."],
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SerializableAccountMeta",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_signer",
+            "type": "bool"
+          },
+          {
+            "name": "is_writable",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SerializableInstruction",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "program_id",
+            "type": "pubkey"
+          },
+          {
+            "name": "accounts",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "SerializableAccountMeta"
+                }
+              }
+            }
+          },
+          {
+            "name": "data",
+            "type": "bytes"
           }
         ]
       }

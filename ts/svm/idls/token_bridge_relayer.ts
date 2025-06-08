@@ -5,10 +5,10 @@
  * IDL can be found at `target/idl/token_bridge_relayer.json`.
  */
 export type TokenBridgeRelayer = {
-  address: "Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah";
+  address: "tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf";
   metadata: {
     name: "tokenBridgeRelayer";
-    version: "0.3.0";
+    version: "0.4.0";
     spec: "0.1.0";
     description: "Created with Anchor";
   };
@@ -245,11 +245,11 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "wormholeProgram";
-          address: "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
+          address: "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5";
         },
         {
           name: "tokenBridgeProgram";
-          address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb";
+          address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
           name: "systemProgram";
@@ -508,11 +508,11 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "wormholeProgram";
-          address: "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
+          address: "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5";
         },
         {
           name: "tokenBridgeProgram";
-          address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb";
+          address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
           name: "systemProgram";
@@ -586,6 +586,39 @@ export type TokenBridgeRelayer = {
         },
       ];
       args: [];
+    },
+    {
+      name: "resolveExecuteVaaV1";
+      docs: [
+        "This instruction returns the instruction for execution based on a v1 VAA",
+        "# Arguments",
+        "",
+        "* `ctx` - `ResolveExecuteVaaV1` context",
+        "* `vaa_body` - Body of the VAA for execution",
+      ];
+      discriminator: [148, 184, 169, 222, 207, 8, 154, 127];
+      accounts: [];
+      args: [
+        {
+          name: "vaaBody";
+          type: "bytes";
+        },
+      ];
+      returns: {
+        defined: {
+          name: "resolver";
+          generics: [
+            {
+              kind: "type";
+              type: {
+                defined: {
+                  name: "instructionGroups";
+                };
+              };
+            },
+          ];
+        };
+      };
     },
     {
       name: "transferNativeTokensWithRelay";
@@ -813,11 +846,11 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "wormholeProgram";
-          address: "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
+          address: "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5";
         },
         {
           name: "tokenBridgeProgram";
-          address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb";
+          address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
           name: "executorProgram";
@@ -1055,11 +1088,11 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "wormholeProgram";
-          address: "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth";
+          address: "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5";
         },
         {
           name: "tokenBridgeProgram";
-          address: "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb";
+          address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
           name: "systemProgram";
@@ -1288,8 +1321,72 @@ export type TokenBridgeRelayer = {
       name: "insufficientFunds";
       msg: "insufficientFunds";
     },
+    {
+      code: 6037;
+      name: "failedToParseVaaBody";
+      msg: "failedToParseVaaBody";
+    },
   ];
   types: [
+    {
+      name: "instructionGroup";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "instructions";
+            type: {
+              vec: {
+                defined: {
+                  name: "serializableInstruction";
+                };
+              };
+            };
+          },
+          {
+            name: "addressLookupTables";
+            type: {
+              vec: "pubkey";
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "instructionGroups";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            vec: {
+              defined: {
+                name: "instructionGroup";
+              };
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "missingAccounts";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "accounts";
+            type: {
+              vec: "pubkey";
+            };
+          },
+          {
+            name: "addressLookupTables";
+            type: {
+              vec: "pubkey";
+            };
+          },
+        ];
+      };
+    },
     {
       name: "redeemerConfig";
       type: {
@@ -1304,6 +1401,42 @@ export type TokenBridgeRelayer = {
       };
     },
     {
+      name: "resolver";
+      generics: [
+        {
+          kind: "type";
+          name: "t";
+        },
+      ];
+      type: {
+        kind: "enum";
+        variants: [
+          {
+            name: "resolved";
+            fields: [
+              {
+                generic: "t";
+              },
+            ];
+          },
+          {
+            name: "missing";
+            fields: [
+              {
+                defined: {
+                  name: "missingAccounts";
+                };
+              },
+            ];
+          },
+          {
+            name: "account";
+            fields: [];
+          },
+        ];
+      };
+    },
+    {
       name: "senderConfig";
       type: {
         kind: "struct";
@@ -1312,6 +1445,52 @@ export type TokenBridgeRelayer = {
             name: "bump";
             docs: ["PDA bump."];
             type: "u8";
+          },
+        ];
+      };
+    },
+    {
+      name: "serializableAccountMeta";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "pubkey";
+            type: "pubkey";
+          },
+          {
+            name: "isSigner";
+            type: "bool";
+          },
+          {
+            name: "isWritable";
+            type: "bool";
+          },
+        ];
+      };
+    },
+    {
+      name: "serializableInstruction";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "programId";
+            type: "pubkey";
+          },
+          {
+            name: "accounts";
+            type: {
+              vec: {
+                defined: {
+                  name: "serializableAccountMeta";
+                };
+              };
+            };
+          },
+          {
+            name: "data";
+            type: "bytes";
           },
         ];
       };

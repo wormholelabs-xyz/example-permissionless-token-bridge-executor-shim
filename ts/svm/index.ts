@@ -27,7 +27,11 @@ export async function transfer(
     "4yttKWzRoNYS2HekxDfcZYmfQqnVWpKiJ8eydYRuFRgs",
   );
   const messageKeypair = new web3.Keypair();
-  return program.methods
+  const lut = await program.provider.connection.getAddressLookupTable(
+    new web3.PublicKey("B2eRh1UD88UvgYc5Y9yAk8gMVApHEnaTeizACZBxQugN"),
+  );
+  const luts = lut.value ? [lut.value] : [];
+  const ix = await program.methods
     .transferNativeTokensWithRelay({
       amount: new BN(amount),
       recipientChain,
@@ -76,8 +80,16 @@ export async function transfer(
       clock: web3.SYSVAR_CLOCK_PUBKEY,
       rent: web3.SYSVAR_RENT_PUBKEY,
     })
-    .signers([messageKeypair])
-    .rpc();
+    .instruction();
+
+  let { blockhash } = await program.provider.connection.getLatestBlockhash();
+  const messageV0 = new web3.TransactionMessage({
+    payerKey: program.provider.publicKey!,
+    instructions: [ix],
+    recentBlockhash: blockhash,
+  }).compileToV0Message(luts);
+  const transaction = new web3.VersionedTransaction(messageV0);
+  return { transaction, signers: [messageKeypair] };
 }
 
 export async function redeem(
