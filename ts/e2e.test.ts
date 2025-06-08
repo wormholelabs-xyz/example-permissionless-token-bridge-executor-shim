@@ -37,7 +37,7 @@ const GUARDIAN_URL = "https://api.testnet.wormholescan.io";
 const EXECUTOR_URL = "http://localhost:3000";
 
 const coreBridgeAddress = new web3.PublicKey(
-  "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+  "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
 );
 
 const connection = new web3.Connection(SOLANA_RPC_URL, "confirmed");
@@ -47,7 +47,7 @@ const SOLANA_KEY = envStringRequired(`SOLANA_KEY`);
 const payer = web3.Keypair.fromSecretKey(
   SOLANA_KEY.endsWith(".json")
     ? new Uint8Array(require(SOLANA_KEY))
-    : bs58.decode(SOLANA_KEY)
+    : bs58.decode(SOLANA_KEY),
 );
 const provider = new AnchorProvider(connection, new Wallet(payer));
 setProvider(provider);
@@ -89,14 +89,14 @@ async function testSolanaToAvalanche() {
     dstTransferRecipient, // these are the same on EVM
     estimate,
     Buffer.from(quote.substring(2), "hex"),
-    Buffer.from(relayInstructions.substring(2), "hex")
+    Buffer.from(relayInstructions.substring(2), "hex"),
   );
   console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
   console.log(
-    `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`
+    `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`,
   );
   console.log(
-    `http://localhost:3000/v0/status/0001${bs58.decode(tx).toString("hex")}`
+    `http://localhost:3000/v0/status/0001${bs58.decode(tx).toString("hex")}`,
   );
 }
 
@@ -129,7 +129,7 @@ async function testAvalancheToSolana() {
     evm_rpc,
     srcDeployment as `0x${string}`,
     token,
-    100n
+    100n,
   );
   console.log(`https://testnet.snowtrace.io/tx/${approvalTx}?chainid=43113`);
   console.log(`waiting for approval confirmation...`);
@@ -149,14 +149,14 @@ async function testAvalancheToSolana() {
     `0x${dstProgram.toBuffer().toString("hex")}`,
     estimate,
     quote,
-    relayInstructions
+    relayInstructions,
   );
   console.log(`https://testnet.snowtrace.io/tx/${tx}?chainid=43113`);
   console.log(
-    `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`
+    `https://wormholescan.io/#/tx/${tx}?network=Testnet&view=overview`,
   );
   console.log(
-    `http://localhost:3000/v0/status/0006${tx.substring(2)}0000000000000000000000000000000000000000000000000000000000000007`
+    `http://localhost:3000/v0/status/0006${tx.substring(2)}0000000000000000000000000000000000000000000000000000000000000007`,
   );
 }
 
@@ -166,8 +166,8 @@ async function testDirectSolanaRedeem() {
     "Uint8Array",
     Buffer.from(
       "AQAAAAABAO8QSEQuF9qjEd5b1jfzw2U7RriEkFuA5/CeMMEi7nwmQK+GW/RS+/8SbQMl9i6iB07xp/i0e+Ps3cRif5PyNhoBZ6fepAAAAAAABgAAAAAAAAAAAAAAAGHkTlBspWWebAu6m2eFhvotcpdWAAAAAAAASnsBAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKBpuIV/6rgYT7aH9jRhjANdrEOdwa6ztVmKDwAAAAAAEAAfq1IUF37mqrWWu1nwOFOzFjvJQmSYsTI/5rVHHDSJFeAAEAAAAAAAAAAAAAAACZ0h3dM0dyNj77Y66ifWVpp0cUkYNxi37Ilhe3BAaF4BvcygMhQCKYDarpE0Dgw/hAwAXv",
-      "base64"
-    )
+      "base64",
+    ),
   );
   console.log(Buffer.from(VAA.hash).toString("hex"));
   const token = "So11111111111111111111111111111111111111112";
@@ -180,7 +180,7 @@ async function testDirectSolanaRedeem() {
     const sig = await provider.sendAndConfirm(
       tx.transaction.transaction,
       tx.transaction.signers,
-      { commitment: "confirmed" }
+      { commitment: "confirmed" },
     );
     console.log(`https://explorer.solana.com/tx/${sig}?cluster=devnet`);
   }
@@ -191,7 +191,7 @@ async function testDirectSolanaRedeem() {
     token,
     chainToChainId(VAA.emitterChain),
     VAA.emitterAddress.toUint8Array(),
-    VAA.sequence
+    VAA.sequence,
   );
   console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
 }

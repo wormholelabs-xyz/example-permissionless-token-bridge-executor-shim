@@ -11,20 +11,20 @@ export async function transfer(
   dstExecutionAddress: number[],
   execAmount: bigint,
   signedQuoteBytes: Buffer,
-  relayInstructions: Buffer
+  relayInstructions: Buffer,
 ) {
   const program = new Program<TokenBridgeRelayer>(
-    TokenBridgeRelayerIdl as TokenBridgeRelayer
+    TokenBridgeRelayerIdl as TokenBridgeRelayer,
   );
   const mint = new web3.PublicKey(token);
   const wormholeProgram = new web3.PublicKey(
-    "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+    "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
   );
   const tokenBridgeProgram = new web3.PublicKey(
-    "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+    "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
   );
   const tokenBridgeEmitter = new web3.PublicKey(
-    "4yttKWzRoNYS2HekxDfcZYmfQqnVWpKiJ8eydYRuFRgs"
+    "4yttKWzRoNYS2HekxDfcZYmfQqnVWpKiJ8eydYRuFRgs",
   );
   const messageKeypair = new web3.Keypair();
   return program.methods
@@ -44,31 +44,31 @@ export async function transfer(
       mint,
       tokenBridgeConfig: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("config")],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeCustody: web3.PublicKey.findProgramAddressSync(
         [mint.toBuffer()],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeAuthoritySigner: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("authority_signer")],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeCustodySigner: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("custody_signer")],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       wormholeBridge: new web3.PublicKey(
-        "6bi4JGDoRwUs9TYBuvoA7dUVyikTJDrJsJU1ew6KVLiu"
+        "6bi4JGDoRwUs9TYBuvoA7dUVyikTJDrJsJU1ew6KVLiu",
       ),
       wormholeMessage: messageKeypair.publicKey,
       tokenBridgeEmitter,
       tokenBridgeSequence: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("Sequence"), tokenBridgeEmitter.toBytes()],
-        wormholeProgram
+        wormholeProgram,
       )[0],
       wormholeFeeCollector: new web3.PublicKey(
-        "7s3a1ycs16d6SNDumaRtjcoyMaTDZPavzgsmS3uUZYWX"
+        "7s3a1ycs16d6SNDumaRtjcoyMaTDZPavzgsmS3uUZYWX",
       ),
       payee: new web3.PublicKey(signedQuoteBytes.slice(24, 56)),
       wormholeProgram,
@@ -86,17 +86,17 @@ export async function redeem(
   token: web3.PublicKeyInitData,
   emitterChain: number,
   emitterAddress: Buffer | Uint8Array | string,
-  sequence: bigint | number
+  sequence: bigint | number,
 ) {
   const program = new Program<TokenBridgeRelayer>(
-    TokenBridgeRelayerIdl as TokenBridgeRelayer
+    TokenBridgeRelayerIdl as TokenBridgeRelayer,
   );
   const mint = new web3.PublicKey(token);
   const wormholeProgram = new web3.PublicKey(
-    "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+    "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
   );
   const tokenBridgeProgram = new web3.PublicKey(
-    "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+    "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
   );
   // required for claim derivation
   const address =
@@ -108,7 +108,7 @@ export async function redeem(
   }
   const sequenceSerialized = Buffer.alloc(8);
   sequenceSerialized.writeBigUInt64BE(
-    typeof sequence == "number" ? BigInt(sequence) : sequence
+    typeof sequence == "number" ? BigInt(sequence) : sequence,
   );
   return program.methods
     .completeNativeTransferWithRelay(vaa_hash)
@@ -117,11 +117,11 @@ export async function redeem(
       recipient,
       tokenBridgeConfig: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("config")],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       vaa: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("PostedVAA"), Buffer.from(vaa_hash)],
-        wormholeProgram
+        wormholeProgram,
       )[0],
       tokenBridgeClaim: web3.PublicKey.findProgramAddressSync(
         [
@@ -133,7 +133,7 @@ export async function redeem(
           })(),
           sequenceSerialized,
         ],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeForeignEndpoint: web3.PublicKey.findProgramAddressSync(
         [
@@ -144,15 +144,15 @@ export async function redeem(
           })(),
           address,
         ],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeCustody: web3.PublicKey.findProgramAddressSync(
         [mint.toBuffer()],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       tokenBridgeCustodySigner: web3.PublicKey.findProgramAddressSync(
         [Buffer.from("custody_signer")],
-        tokenBridgeProgram
+        tokenBridgeProgram,
       )[0],
       wormholeProgram,
       tokenBridgeProgram,

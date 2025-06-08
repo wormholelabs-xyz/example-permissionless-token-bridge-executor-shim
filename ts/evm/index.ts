@@ -8,7 +8,7 @@ export async function approve(
   rpc: string,
   address: `0x${string}`,
   token: `0x${string}`,
-  amount: bigint
+  amount: bigint,
 ) {
   const publicClient = createPublicClient({
     chain,
@@ -57,7 +57,7 @@ export async function approve(
 export async function waitForTransactionReceipt(
   chain: Chain,
   rpc: string,
-  hash: `0x${string}`
+  hash: `0x${string}`,
 ) {
   const publicClient = createPublicClient({
     chain,
@@ -80,7 +80,7 @@ export async function transfer(
   dstExecutionAddress: `0x${string}`,
   executionAmount: bigint,
   signedQuoteBytes: `0x${string}`,
-  relayInstructions: `0x${string}`
+  relayInstructions: `0x${string}`,
 ) {
   const publicClient = createPublicClient({
     chain,
