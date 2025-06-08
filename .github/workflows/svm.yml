@@ -24,6 +24,7 @@ jobs:
           echo "::set-output name=version::${ANCHOR_VERSION}"
       - uses: evan-gray/anchor-test@06370fbca011ee48b176211b8f858789d6c33282
         with:
+          node-version: "22.16.0"
           anchor-version: "${{steps.anchor.outputs.version}}"
           solana-cli-version: "${{steps.solana.outputs.version}}"
           working-directory: "svm"
