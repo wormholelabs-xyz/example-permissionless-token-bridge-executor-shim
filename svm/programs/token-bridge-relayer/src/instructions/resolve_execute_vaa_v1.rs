@@ -3,7 +3,7 @@ use anchor_lang::{
     solana_program::{self, instruction::Instruction},
     InstructionData,
 };
-use anchor_spl::associated_token::get_associated_token_address_with_program_id;
+use anchor_spl::associated_token::{get_associated_token_address_with_program_id, AssociatedToken};
 use executor_account_resolver_svm::{
     InstructionGroup, InstructionGroups, MissingAccounts, Resolver, RESOLVER_PUBKEY_PAYER,
     RESOLVER_PUBKEY_POSTED_VAA,
@@ -168,12 +168,17 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: System::id(),
+                            pubkey: token_program,
                             is_writable: false,
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: token_program,
+                            pubkey: AssociatedToken::id(),
+                            is_writable: false,
+                            is_signer: false,
+                        },
+                        AccountMeta {
+                            pubkey: System::id(),
                             is_writable: false,
                             is_signer: false,
                         },
@@ -304,12 +309,17 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: System::id(),
+                            pubkey: token_program,
                             is_writable: false,
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: token_program,
+                            pubkey: AssociatedToken::id(),
+                            is_writable: false,
+                            is_signer: false,
+                        },
+                        AccountMeta {
+                            pubkey: System::id(),
                             is_writable: false,
                             is_signer: false,
                         },
