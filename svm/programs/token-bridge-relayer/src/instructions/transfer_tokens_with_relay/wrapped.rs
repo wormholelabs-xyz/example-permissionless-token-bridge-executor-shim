@@ -3,11 +3,10 @@ declare_program!(executor);
 use crate::{
     ext::make_vaa_v1_request,
     state::{SenderConfig, SEED_PREFIX_TMP},
-    token::{Token, TokenAccount},
     OUR_CHAIN,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use executor::{program::Executor, types::RequestForExecutionArgs};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
@@ -38,16 +37,17 @@ pub struct TransferWrappedWithRelay<'info> {
     /// Token Bridge wrapped mint info. This is the SPL token that will be
     /// bridged to the foreign contract. The wrapped mint PDA must agree
     /// with the native token's metadata. Mutable.
-    pub token_bridge_wrapped_mint: Box<Account<'info, Mint>>,
+    pub token_bridge_wrapped_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         mut,
         associated_token::mint = token_bridge_wrapped_mint,
         associated_token::authority = payer,
+        associated_token::token_program = token_program
     )]
     /// Payer's associated token account. We may want to make this a generic
     /// token account in the future.
-    pub from_token_account: Account<'info, TokenAccount>,
+    pub from_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
@@ -59,12 +59,13 @@ pub struct TransferWrappedWithRelay<'info> {
         bump,
         token::mint = token_bridge_wrapped_mint,
         token::authority = config,
+        token::token_program = token_program
     )]
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged out, the token account
     /// will have zero balance and can be closed.
-    pub tmp_token_account: Box<Account<'info, TokenAccount>>,
+    pub tmp_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// CHECK: Token Bridge program's wrapped metadata, which stores info
     /// about the token from its native chain:
@@ -106,7 +107,7 @@ pub struct TransferWrappedWithRelay<'info> {
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
     pub executor_program: Program<'info, Executor>,
 
     /// CHECK: Token Bridge program needs clock sysvar.
@@ -152,16 +153,18 @@ pub fn transfer_wrapped_tokens_with_relay(
     let token_program = &ctx.accounts.token_program;
 
     // First transfer tokens from payer to tmp_token_account.
-    anchor_spl::token::transfer(
+    anchor_spl::token_interface::transfer_checked(
         CpiContext::new(
             token_program.to_account_info(),
-            anchor_spl::token::Transfer {
+            anchor_spl::token_interface::TransferChecked {
                 from: ctx.accounts.from_token_account.to_account_info(),
+                mint: ctx.accounts.token_bridge_wrapped_mint.to_account_info(),
                 to: tmp_token_account.to_account_info(),
                 authority: payer.to_account_info(),
             },
         ),
         amount,
+        ctx.accounts.token_bridge_wrapped_mint.decimals,
     )?;
 
     let msg = prepare_transfer(
@@ -213,9 +216,9 @@ pub fn transfer_wrapped_tokens_with_relay(
     )?;
 
     // Finish instruction by closing tmp_token_account.
-    anchor_spl::token::close_account(CpiContext::new_with_signer(
+    anchor_spl::token_interface::close_account(CpiContext::new_with_signer(
         token_program.to_account_info(),
-        anchor_spl::token::CloseAccount {
+        anchor_spl::token_interface::CloseAccount {
             account: tmp_token_account.to_account_info(),
             destination: payer.to_account_info(),
             authority: config.to_account_info(),

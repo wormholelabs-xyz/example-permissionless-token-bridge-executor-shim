@@ -28,13 +28,29 @@ describe("token_bridge_relayer", () => {
     const sigLength = 66;
     const vaa_body = vaa.subarray(sigStart + sigLength * numSigners);
     const vaa_hash = keccak256(`0x${vaa_body.toString("hex")}`).substring(2);
-    const result = await program.methods.resolveExecuteVaaV1(vaa_body).view();
-    const payer = new anchor.web3.PublicKey(
-      Buffer.from("payer_00000000000000000000000000"),
-    ).toString();
     const mint = new anchor.web3.PublicKey(
       "So11111111111111111111111111111111111111112",
     );
+    const first_result = await program.methods
+      .resolveExecuteVaaV1(vaa_body)
+      .view();
+    expect("missing" in first_result).to.be.true;
+    expect(first_result.missing?.[0]?.accounts?.[0]?.toString()).to.eq(
+      mint.toString(),
+    );
+    const result = await program.methods
+      .resolveExecuteVaaV1(vaa_body)
+      .remainingAccounts([
+        {
+          pubkey: mint,
+          isSigner: false,
+          isWritable: false,
+        },
+      ])
+      .view();
+    const payer = new anchor.web3.PublicKey(
+      Buffer.from("payer_00000000000000000000000000"),
+    ).toString();
     const env: string = "mainnet";
     const wormholeProgram = new anchor.web3.PublicKey(
       env === "mainnet"
@@ -54,7 +70,10 @@ describe("token_bridge_relayer", () => {
           isSigner: true,
         },
         {
-          pubkey: "HPHaVtBHhXAdP1WH9PUV9Adv5M4YxuJSqeXwGzFiovty", // config
+          pubkey: anchor.web3.PublicKey.findProgramAddressSync(
+            [Buffer.from("redeemer")],
+            program.programId,
+          )[0].toString(), // redeemer config
           isWritable: false,
           isSigner: false,
         },
@@ -74,7 +93,7 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
         {
-          pubkey: "2yd7rzAYqovi2pYfwzMzB7JMh9t78y8xeKJHE8PvwPxZ", // tmp_token_account
+          pubkey: "CJhdEE6bczcuVeU1m36B54oTnQYbY38rYQ1UDFCM1iY6", // tmp_token_account
           isWritable: true,
           isSigner: false,
         },
@@ -180,7 +199,7 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
       ],
-      programId: "Hsf7mQAy6eSYbqGYqkeTx8smMGF4m6Nn6viGoh9wxiah",
+      programId: "tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf",
       data: "8f51ed856cf1be9d" + vaa_hash,
     };
     const resolvedResult = result.resolved[0][0];

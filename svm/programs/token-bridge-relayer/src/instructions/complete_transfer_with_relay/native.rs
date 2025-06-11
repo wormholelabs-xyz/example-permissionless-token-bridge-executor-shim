@@ -2,10 +2,13 @@ use crate::{
     error::TokenBridgeRelayerError,
     message::TokenBridgeRelayerMessage,
     state::{RedeemerConfig, SEED_PREFIX_TMP},
-    token::{spl_token, Mint, Token, TokenAccount},
     PostedTokenBridgeRelayerMessage, OUR_CHAIN,
 };
 use anchor_lang::prelude::*;
+use anchor_spl::{
+    token::spl_token::native_mint,
+    token_interface::{Mint, TokenAccount, TokenInterface},
+};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::{program::Wormhole, SEED_PREFIX_POSTED_VAA},
@@ -32,17 +35,18 @@ pub struct CompleteNativeWithRelay<'info> {
     /// Mint info. This is the SPL token that will be bridged over from the
     /// foreign contract. This must match the token address specified in the
     /// signed Wormhole message. Read-only.
-    pub mint: Box<Account<'info, Mint>>,
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         mut,
         associated_token::mint = mint,
-        associated_token::authority = recipient
+        associated_token::authority = recipient,
+        associated_token::token_program = token_program
     )]
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
     /// of the bridged tokens. Mutable.
-    pub recipient_token_account: Box<Account<'info, TokenAccount>>,
+    pub recipient_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
     /// CHECK: recipient may differ from payer if a relayer paid for this
@@ -59,14 +63,15 @@ pub struct CompleteNativeWithRelay<'info> {
         ],
         bump,
         token::mint = mint,
-        token::authority = config
+        token::authority = config,
+        token::token_program = token_program
     )]
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged in, the tokens will be
     /// transferred to the destination token accounts. This account will have
     /// zero balance and can be closed.
-    pub tmp_token_account: Box<Account<'info, TokenAccount>>,
+    pub tmp_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
@@ -119,7 +124,7 @@ pub struct CompleteNativeWithRelay<'info> {
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 
     /// CHECK: Token Bridge program needs rent sysvar.
     pub rent: UncheckedAccount<'info>,
@@ -179,11 +184,11 @@ pub fn complete_native_transfer_with_relay(
     // unwrap and transfer the SOL to the recipient and relayer.
     // Since we are unwrapping the SOL, this contract will not
     // perform a swap with the off-chain relayer.
-    if ctx.accounts.mint.key() == spl_token::native_mint::ID {
+    if ctx.accounts.mint.key() == native_mint::ID {
         // Transfer all lamports to the recipient.
-        anchor_spl::token::close_account(CpiContext::new_with_signer(
+        anchor_spl::token_interface::close_account(CpiContext::new_with_signer(
             ctx.accounts.token_program.to_account_info(),
-            anchor_spl::token::CloseAccount {
+            anchor_spl::token_interface::CloseAccount {
                 account: ctx.accounts.tmp_token_account.to_account_info(),
                 destination: ctx.accounts.recipient.to_account_info(),
                 authority: ctx.accounts.config.to_account_info(),
@@ -197,6 +202,7 @@ pub fn complete_native_transfer_with_relay(
             RedeemToken {
                 payer: &ctx.accounts.payer,
                 config: &ctx.accounts.config,
+                mint: &ctx.accounts.mint,
                 recipient_token_account: &ctx.accounts.recipient_token_account,
                 tmp_token_account: &ctx.accounts.tmp_token_account,
                 token_program: &ctx.accounts.token_program,

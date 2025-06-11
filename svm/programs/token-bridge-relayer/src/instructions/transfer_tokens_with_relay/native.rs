@@ -4,12 +4,15 @@ use crate::{
     error::TokenBridgeRelayerError,
     ext::make_vaa_v1_request,
     state::{SenderConfig, SEED_PREFIX_TMP},
-    token::{self, spl_token, Mint, Token, TokenAccount},
     OUR_CHAIN,
 };
 use anchor_lang::{
     prelude::*,
     system_program::{self, Transfer},
+};
+use anchor_spl::{
+    token::spl_token::native_mint,
+    token_interface::{self, Mint, TokenAccount, TokenInterface},
 };
 use executor::{program::Executor, types::RequestForExecutionArgs};
 use wormhole_anchor_sdk::{
@@ -41,16 +44,17 @@ pub struct TransferNativeWithRelay<'info> {
     #[account(mut)]
     /// Mint info. This is the SPL token that will be bridged over to the
     /// foreign contract. Mutable.
-    pub mint: Box<Account<'info, Mint>>,
+    pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         mut,
         associated_token::mint = mint,
         associated_token::authority = payer,
+        associated_token::token_program = token_program
     )]
     /// Payer's associated token account. We may want to make this a generic
     /// token account in the future.
-    pub from_token_account: Box<Account<'info, TokenAccount>>,
+    pub from_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         init,
@@ -62,12 +66,13 @@ pub struct TransferNativeWithRelay<'info> {
         bump,
         token::mint = mint,
         token::authority = config,
+        token::token_program = token_program
     )]
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged out, the token account
     /// will have zero balance and can be closed.
-    pub tmp_token_account: Box<Account<'info, TokenAccount>>,
+    pub tmp_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// CHECK: Token Bridge config. Read-only.
     pub token_bridge_config: UncheckedAccount<'info>,
@@ -110,7 +115,7 @@ pub struct TransferNativeWithRelay<'info> {
     pub payee: UncheckedAccount<'info>,
 
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
     pub executor_program: Program<'info, Executor>,
@@ -182,7 +187,7 @@ pub fn transfer_native_tokens_with_relay(
     // we can just transfer the specified token to the tmp_token_account.
     if wrap_native {
         require!(
-            mint.key() == spl_token::native_mint::ID,
+            mint.key() == native_mint::ID,
             TokenBridgeRelayerError::NativeMintRequired
         );
 
@@ -200,23 +205,25 @@ pub fn transfer_native_tokens_with_relay(
 
         // Sync the token account based on the lamports we sent it,
         // this is where the wrapping takes place.
-        token::sync_native(CpiContext::new(
+        token_interface::sync_native(CpiContext::new(
             token_program.to_account_info(),
-            token::SyncNative {
+            token_interface::SyncNative {
                 account: tmp_token_account.to_account_info(),
             },
         ))?;
     } else {
-        anchor_spl::token::transfer(
+        anchor_spl::token_interface::transfer_checked(
             CpiContext::new(
                 token_program.to_account_info(),
-                anchor_spl::token::Transfer {
+                anchor_spl::token_interface::TransferChecked {
                     from: ctx.accounts.from_token_account.to_account_info(),
+                    mint: ctx.accounts.mint.to_account_info(),
                     to: tmp_token_account.to_account_info(),
                     authority: payer.to_account_info(),
                 },
             ),
             truncated_amount,
+            mint.decimals,
         )?;
     }
 
@@ -269,9 +276,9 @@ pub fn transfer_native_tokens_with_relay(
     )?;
 
     // Finish instruction by closing tmp_token_account.
-    anchor_spl::token::close_account(CpiContext::new_with_signer(
+    anchor_spl::token_interface::close_account(CpiContext::new_with_signer(
         token_program.to_account_info(),
-        anchor_spl::token::CloseAccount {
+        anchor_spl::token_interface::CloseAccount {
             account: tmp_token_account.to_account_info(),
             destination: payer.to_account_info(),
             authority: config.to_account_info(),

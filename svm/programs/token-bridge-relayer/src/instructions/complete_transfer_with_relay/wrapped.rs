@@ -2,11 +2,10 @@ use crate::{
     error::TokenBridgeRelayerError,
     message::TokenBridgeRelayerMessage,
     state::{RedeemerConfig, SEED_PREFIX_TMP},
-    token::{Token, TokenAccount},
     PostedTokenBridgeRelayerMessage, OUR_CHAIN,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use wormhole_anchor_sdk::{
     token_bridge::{self, program::TokenBridge},
     wormhole::{program::Wormhole, SEED_PREFIX_POSTED_VAA},
@@ -34,17 +33,18 @@ pub struct CompleteWrappedWithRelay<'info> {
     /// Token Bridge wrapped mint info. This is the SPL token that will be
     /// bridged from the foreign contract. The wrapped mint PDA must agree
     /// with the native token's metadata in the wormhole message. Mutable.
-    pub token_bridge_wrapped_mint: Box<Account<'info, Mint>>,
+    pub token_bridge_wrapped_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         mut,
         associated_token::mint = token_bridge_wrapped_mint,
-        associated_token::authority = recipient
+        associated_token::authority = recipient,
+        associated_token::token_program = token_program
     )]
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
     /// of the bridged tokens. Mutable.
-    pub recipient_token_account: Box<Account<'info, TokenAccount>>,
+    pub recipient_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
     /// CHECK: recipient may differ from payer if a relayer paid for this
@@ -61,14 +61,15 @@ pub struct CompleteWrappedWithRelay<'info> {
         ],
         bump,
         token::mint = token_bridge_wrapped_mint,
-        token::authority = config
+        token::authority = config,
+        token::token_program = token_program
     )]
     /// Program's temporary token account. This account is created before the
     /// instruction is invoked to temporarily take custody of the payer's
     /// tokens. When the tokens are finally bridged in, the tokens will be
     /// transferred to the destination token accounts. This account will have
     /// zero balance and can be closed.
-    pub tmp_token_account: Box<Account<'info, TokenAccount>>,
+    pub tmp_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     /// CHECK: Token Bridge program's wrapped metadata, which stores info
     /// about the token from its native chain:
@@ -123,7 +124,7 @@ pub struct CompleteWrappedWithRelay<'info> {
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
 
     /// CHECK: Token Bridge program needs rent sysvar.
     pub rent: UncheckedAccount<'info>,
@@ -169,6 +170,7 @@ pub fn complete_wrapped_transfer_with_relay(
         RedeemToken {
             payer: &ctx.accounts.payer,
             config: &ctx.accounts.config,
+            mint: &ctx.accounts.token_bridge_wrapped_mint,
             recipient_token_account: &ctx.accounts.recipient_token_account,
             tmp_token_account: &ctx.accounts.tmp_token_account,
             token_program: &ctx.accounts.token_program,
