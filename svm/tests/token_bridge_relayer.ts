@@ -184,12 +184,17 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
         {
-          pubkey: "11111111111111111111111111111111", // system
+          pubkey: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // token
           isWritable: false,
           isSigner: false,
         },
         {
-          pubkey: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA", // token
+          pubkey: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL", // associated token
+          isWritable: false,
+          isSigner: false,
+        },
+        {
+          pubkey: "11111111111111111111111111111111", // system
           isWritable: false,
           isSigner: false,
         },

@@ -6,6 +6,7 @@ use crate::{
 };
 use anchor_lang::prelude::*;
 use anchor_spl::{
+    associated_token::AssociatedToken,
     token::spl_token::native_mint,
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
@@ -38,14 +39,15 @@ pub struct CompleteNativeWithRelay<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = payer,
         associated_token::mint = mint,
         associated_token::authority = recipient,
         associated_token::token_program = token_program
     )]
     /// Recipient associated token account. The recipient authority check
     /// is necessary to ensure that the recipient is the intended recipient
-    /// of the bridged tokens. Mutable.
+    /// of the bridged tokens and create the token account if needed. Mutable.
     pub recipient_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(mut)]
@@ -123,8 +125,9 @@ pub struct CompleteNativeWithRelay<'info> {
 
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
-    pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
 
     /// CHECK: Token Bridge program needs rent sysvar.
     pub rent: UncheckedAccount<'info>,
