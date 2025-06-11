@@ -3,9 +3,9 @@ use anchor_lang::{
     solana_program::{self, instruction::Instruction},
     InstructionData,
 };
-use anchor_spl::{associated_token::get_associated_token_address, token::Token};
+use anchor_spl::associated_token::get_associated_token_address_with_program_id;
 use executor_account_resolver_svm::{
-    InstructionGroup, InstructionGroups, Resolver, RESOLVER_PUBKEY_PAYER,
+    InstructionGroup, InstructionGroups, MissingAccounts, Resolver, RESOLVER_PUBKEY_PAYER,
     RESOLVER_PUBKEY_POSTED_VAA,
 };
 use wormhole_anchor_sdk::{token_bridge::program::TokenBridge, wormhole::program::Wormhole};
@@ -21,8 +21,22 @@ use crate::{
 #[derive(Accounts)]
 pub struct ResolveExecuteVaaV1 {}
 
+pub fn find_account<'c, 'info>(
+    accs: &'c [AccountInfo<'info>],
+    pubkey: Pubkey,
+) -> Option<&'c AccountInfo<'info>> {
+    accs.iter().find(|acc_info| *acc_info.key == pubkey)
+}
+
+pub fn missing_account(pubkey: Pubkey) -> Resolver<InstructionGroups> {
+    Resolver::Missing(MissingAccounts {
+        accounts: vec![pubkey],
+        address_lookup_tables: vec![],
+    })
+}
+
 pub fn resolve_execute_vaa_v1(
-    _ctx: Context<ResolveExecuteVaaV1>,
+    ctx: Context<ResolveExecuteVaaV1>,
     vaa_body: Vec<u8>,
 ) -> Result<Resolver<InstructionGroups>> {
     // Compute the message hash.
@@ -36,7 +50,7 @@ pub fn resolve_execute_vaa_v1(
         .transfer_with_message()
         .ok_or(TokenBridgeRelayerError::FailedToParseVaaBody)?;
     // Calculate shared accounts
-    let (config, _) = Pubkey::find_program_address(&[RedeemerConfig::SEED_PREFIX], &crate::ID);
+    let (redeemer, _) = Pubkey::find_program_address(&[RedeemerConfig::SEED_PREFIX], &crate::ID);
     let (token_bridge_config, _) = Pubkey::find_program_address(&[b"config"], &TokenBridge::id());
     let (token_bridge_claim, _) = Pubkey::find_program_address(
         &[
@@ -56,6 +70,12 @@ pub fn resolve_execute_vaa_v1(
             _vaa_hash: message_hash,
         };
         let mint = Pubkey::new_from_array(transfer_with_message.token_address());
+        let mint_info = if let Some(acc_info) = find_account(ctx.remaining_accounts, mint) {
+            acc_info
+        } else {
+            return Ok(missing_account(mint));
+        };
+        let token_program = *mint_info.owner;
         let recipient = Pubkey::new_from_array(
             transfer_with_message.payload().as_ref()[0..32]
                 .try_into()
@@ -79,7 +99,7 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: true,
                         },
                         AccountMeta {
-                            pubkey: config,
+                            pubkey: redeemer,
                             is_writable: false,
                             is_signer: false,
                         },
@@ -89,7 +109,11 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: get_associated_token_address(&recipient, &mint),
+                            pubkey: get_associated_token_address_with_program_id(
+                                &recipient,
+                                &mint,
+                                &token_program,
+                            ),
                             is_writable: true,
                             is_signer: false,
                         },
@@ -149,7 +173,7 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: Token::id(),
+                            pubkey: token_program,
                             is_writable: false,
                             is_signer: false,
                         },
@@ -176,6 +200,14 @@ pub fn resolve_execute_vaa_v1(
             ],
             &TokenBridge::id(),
         );
+        let mint_info = if let Some(acc_info) =
+            find_account(ctx.remaining_accounts, token_bridge_wrapped_mint)
+        {
+            acc_info
+        } else {
+            return Ok(missing_account(token_bridge_wrapped_mint));
+        };
+        let token_program = *mint_info.owner;
         let recipient = Pubkey::new_from_array(
             transfer_with_message.payload().as_ref()[0..32]
                 .try_into()
@@ -203,7 +235,7 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: true,
                         },
                         AccountMeta {
-                            pubkey: config,
+                            pubkey: redeemer,
                             is_writable: false,
                             is_signer: false,
                         },
@@ -213,9 +245,10 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: get_associated_token_address(
+                            pubkey: get_associated_token_address_with_program_id(
                                 &recipient,
                                 &token_bridge_wrapped_mint,
+                                &token_program,
                             ),
                             is_writable: true,
                             is_signer: false,
@@ -276,7 +309,7 @@ pub fn resolve_execute_vaa_v1(
                             is_signer: false,
                         },
                         AccountMeta {
-                            pubkey: Token::id(),
+                            pubkey: token_program,
                             is_writable: false,
                             is_signer: false,
                         },

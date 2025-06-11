@@ -9,13 +9,13 @@ use crate::{
     utils::valid_foreign_address,
 };
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount};
+use anchor_spl::token_interface::{TokenAccount, TokenInterface};
 
 struct PrepareTransfer<'ctx, 'info> {
     pub config: &'ctx Account<'info, SenderConfig>,
-    pub tmp_token_account: &'ctx Account<'info, TokenAccount>,
+    pub tmp_token_account: &'ctx InterfaceAccount<'info, TokenAccount>,
     pub token_bridge_authority_signer: &'ctx UncheckedAccount<'info>,
-    pub token_program: &'ctx Program<'info, Token>,
+    pub token_program: &'ctx Interface<'info, TokenInterface>,
 }
 
 fn prepare_transfer(
@@ -43,10 +43,10 @@ fn prepare_transfer(
     let config_seeds = &[SenderConfig::SEED_PREFIX.as_ref(), &[config.bump]];
 
     // Delegate spending to Token Bridge program's authority signer.
-    anchor_spl::token::approve(
+    anchor_spl::token_interface::approve(
         CpiContext::new_with_signer(
             token_program.to_account_info(),
-            anchor_spl::token::Approve {
+            anchor_spl::token_interface::Approve {
                 to: tmp_token_account.to_account_info(),
                 delegate: token_bridge_authority_signer.to_account_info(),
                 authority: config.to_account_info(),

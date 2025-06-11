@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self};
 use executor_account_resolver_svm::{InstructionGroups, Resolver, RESOLVER_EXECUTE_VAA_V1};
 
 declare_id!("tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf");
