@@ -11,6 +11,7 @@ use anchor_lang::{
     system_program::{self, Transfer},
 };
 use anchor_spl::{
+    associated_token::AssociatedToken,
     token::spl_token::native_mint,
     token_interface::{self, Mint, TokenAccount, TokenInterface},
 };
@@ -47,7 +48,9 @@ pub struct TransferNativeWithRelay<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-        mut,
+        init_if_needed, // this is used for a native transfer without a native account
+        // TODO: could this account be optional somehow?
+        payer = payer,
         associated_token::mint = mint,
         associated_token::authority = payer,
         associated_token::token_program = token_program
@@ -118,6 +121,7 @@ pub struct TransferNativeWithRelay<'info> {
     pub token_program: Interface<'info, TokenInterface>,
     pub wormhole_program: Program<'info, Wormhole>,
     pub token_bridge_program: Program<'info, TokenBridge>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub executor_program: Program<'info, Executor>,
 
     /// CHECK: Token Bridge program needs clock sysvar.

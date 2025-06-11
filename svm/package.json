@@ -1,7 +1,10 @@
 {
   "license": "Apache-2.0",
   "dependencies": {
-    "@coral-xyz/anchor": "0.31.1"
+    "@coral-xyz/anchor": "0.31.1",
+    "@solana/spl-token": "^0.4.13",
+    "binary-layout": "1.0.3",
+    "viem": "^2.31.0"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",

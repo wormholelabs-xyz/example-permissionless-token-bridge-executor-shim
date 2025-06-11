@@ -1,8 +1,15 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { TokenBridgeRelayer } from "../target/types/token_bridge_relayer";
-import { keccak256 } from "viem";
+import { keccak256, toHex } from "viem";
 import { assert, expect } from "chai";
+import { BN } from "bn.js";
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { serialize } from "binary-layout";
+import { signedQuoteLayout } from "./signedQuote";
 
 describe("token_bridge_relayer", () => {
   // Configure the client to use the local cluster.
@@ -11,9 +18,35 @@ describe("token_bridge_relayer", () => {
   const program = anchor.workspace
     .TokenBridgeRelayer as Program<TokenBridgeRelayer>;
 
+  const env: string = "testnet";
+  const wormholeProgram = new anchor.web3.PublicKey(
+    env === "mainnet"
+      ? "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+      : "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
+  );
+  const tokenBridgeProgram = new anchor.web3.PublicKey(
+    env === "mainnet"
+      ? "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
+      : "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
+  );
+  const tokenBridgeConfig = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("config")],
+    tokenBridgeProgram,
+  )[0];
+  const tokenBridgeEmitter = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("emitter")],
+    tokenBridgeProgram,
+  )[0];
+  const getTokenBridgeCustody = (mint: anchor.web3.PublicKey) =>
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [mint.toBuffer()],
+      tokenBridgeProgram,
+    )[0];
+
   it("Is initialized!", async () => {
     // Add your test here.
-    const tx = await program.methods.initialize().rpc();
+    const recentSlot = (await program.provider.connection.getSlot()) - 1;
+    const tx = await program.methods.initialize(new BN(recentSlot)).rpc();
     console.log("Your transaction signature", tx);
   });
 
@@ -51,17 +84,7 @@ describe("token_bridge_relayer", () => {
     const payer = new anchor.web3.PublicKey(
       Buffer.from("payer_00000000000000000000000000"),
     ).toString();
-    const env: string = "mainnet";
-    const wormholeProgram = new anchor.web3.PublicKey(
-      env === "mainnet"
-        ? "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
-        : "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5",
-    );
-    const tokenBridgeProgram = new anchor.web3.PublicKey(
-      env === "mainnet"
-        ? "wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb"
-        : "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe",
-    );
+
     const expectedResult = {
       accounts: [
         {
@@ -98,10 +121,7 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
         {
-          pubkey: anchor.web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("config")],
-            tokenBridgeProgram,
-          )[0].toString(), // token_bridge_config
+          pubkey: tokenBridgeConfig.toString(),
           isWritable: false,
           isSigner: false,
         },
@@ -158,10 +178,7 @@ describe("token_bridge_relayer", () => {
           isSigner: false,
         },
         {
-          pubkey: anchor.web3.PublicKey.findProgramAddressSync(
-            [mint.toBuffer()],
-            tokenBridgeProgram,
-          )[0].toString(), // token_bridge_custody
+          pubkey: getTokenBridgeCustody(mint).toString(), // token_bridge_custody
           isWritable: true,
           isSigner: false,
         },
@@ -216,5 +233,121 @@ describe("token_bridge_relayer", () => {
     expect(accts).to.deep.equal(expectedResult.accounts);
     expect(firstIx.programId.toString()).to.equal(expectedResult.programId);
     expect(firstIx.data.toString("hex")).to.equal(expectedResult.data);
+  });
+
+  it("transfers SOL outbound", async () => {
+    const mint = new anchor.web3.PublicKey(
+      "So11111111111111111111111111111111111111112",
+    );
+    const payee = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("fee_collector")],
+      wormholeProgram,
+    )[0];
+    const mockQuote = serialize(signedQuoteLayout, {
+      quote: {
+        baseFee: 0n,
+        dstChain: 2,
+        dstGasPrice: 100n,
+        dstPrice: 100n,
+        expiryTime: new Date("2200-01-01T00:00:00"),
+        payeeAddress: toHex(payee.toBuffer()),
+        prefix: "EQ01",
+        quoterAddress: "0x0000000000000000000000000000000000000000",
+        srcChain: 1,
+        srcPrice: 100n,
+      },
+      signature:
+        "0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    });
+    const message = new anchor.web3.Keypair();
+    const ix = await program.methods
+      .transferNativeTokensWithRelay({
+        amount: new BN(10),
+        dstExecutionAddress: [
+          ...Buffer.from(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+          ),
+        ],
+        dstTransferRecipient: [
+          ...Buffer.from(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+          ),
+        ],
+        execAmount: new BN(0),
+        nonce: 0,
+        recipientAddress: [
+          ...Buffer.from(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+          ),
+        ],
+        recipientChain: 2,
+        relayInstructions: Buffer.from(""),
+        signedQuoteBytes: Buffer.from(mockQuote),
+        wrapNative: true,
+      })
+      .accountsPartial({
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        tokenBridgeConfig,
+        tokenBridgeCustody: getTokenBridgeCustody(mint),
+        tokenBridgeAuthoritySigner:
+          anchor.web3.PublicKey.findProgramAddressSync(
+            [Buffer.from("authority_signer")],
+            tokenBridgeProgram,
+          )[0],
+        tokenBridgeCustodySigner: anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from("custody_signer")],
+          tokenBridgeProgram,
+        )[0],
+        wormholeBridge: anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from("Bridge")],
+          wormholeProgram,
+        )[0],
+        tokenBridgeEmitter,
+        tokenBridgeSequence: anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from("Sequence"), tokenBridgeEmitter.toBytes()],
+          wormholeProgram,
+        )[0],
+        wormholeFeeCollector: anchor.web3.PublicKey.findProgramAddressSync(
+          [Buffer.from("fee_collector")],
+          wormholeProgram,
+        )[0],
+        wormholeMessage: message.publicKey,
+        payee: payee,
+        clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+      })
+      .instruction();
+    // wait for lut to warm up
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const lutPointer = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("lut")],
+      program.programId,
+    )[0];
+    const lutAddress = (await program.account.lut.fetch(lutPointer)).address;
+    const lut =
+      await program.provider.connection.getAddressLookupTable(lutAddress);
+    if (!lut.value) {
+      throw new Error("LUT was null, did you initialize?");
+    }
+    const { blockhash } =
+      await program.provider.connection.getLatestBlockhash();
+    const messageV0 = new anchor.web3.TransactionMessage({
+      payerKey: program.provider.publicKey,
+      instructions: [
+        anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+          units: 1_000_000,
+        }),
+        ix,
+      ],
+      recentBlockhash: blockhash,
+    }).compileToV0Message([lut.value]);
+    const tx = new anchor.web3.VersionedTransaction(messageV0);
+    tx.sign([program.provider.wallet.payer, message]);
+    const hash = await program.provider.sendAndConfirm(tx);
+    console.log(
+      `submitted transfer legacy tx: http://explorer.solana.com/tx/${hash}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`,
+    );
+    // TODO: check the receipt and ensure the accurate token balances changed
   });
 });

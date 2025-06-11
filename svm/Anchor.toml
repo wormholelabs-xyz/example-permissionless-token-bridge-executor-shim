@@ -18,3 +18,32 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test.validator]
+url = "https://api.devnet.solana.com"
+
+## CORE BRIDGE TESTNET (Solana devnet)
+### Wormhole Core Bridge Program (Testnet)
+[[test.validator.clone]]
+address = "3u8hJUVTA4jH1wYAyUur7FFZVQ8H635K3tSHHF4ssjQ5"
+### bridge config
+[[test.validator.clone]]
+address = "6bi4JGDoRwUs9TYBuvoA7dUVyikTJDrJsJU1ew6KVLiu"
+### fee collector
+[[test.validator.clone]]
+address = "7s3a1ycs16d6SNDumaRtjcoyMaTDZPavzgsmS3uUZYWX"
+
+## TOKEN BRIDGE TESTNET (Solana devnet)
+### Wormhole Token Bridge Program (Testnet)
+[[test.validator.clone]]
+address = "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe"
+### config
+[[test.validator.clone]]
+address = "8PFZNjn19BBYVHNp4H31bEW7eAmu78Yf2RKV8EeA461K"
+### custody
+[[test.validator.clone]]
+address = "8GeLbqBx5o4sFCPHPVAd9by3bYp9txvQ1YSkfq7GF1wX"
+
+## EXECUTOR
+[[test.validator.clone]]
+address = "execXUrAsMnqMmTHj5m7N1YQgsDz3cwGLYCYyuDRciV"
