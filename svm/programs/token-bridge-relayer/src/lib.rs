@@ -26,8 +26,8 @@ pub mod token_bridge_relayer {
     use super::*;
 
     /// Permissionlessly initializes the sender config PDA. This avoids having to re-derive the bump in later instructions.
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        instructions::initialize(ctx)
+    pub fn initialize(ctx: Context<Initialize>, recent_slot: u64) -> Result<()> {
+        instructions::initialize(ctx, recent_slot)
     }
 
     /// This instruction is used to transfer native tokens from Solana to a
