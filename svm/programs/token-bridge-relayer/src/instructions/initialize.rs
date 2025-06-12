@@ -8,7 +8,14 @@ use anchor_lang::{
         sysvar::{clock, SysvarId},
     },
 };
-use wormhole_anchor_sdk::{token_bridge::program::TokenBridge, wormhole::program::Wormhole};
+use anchor_spl::{associated_token::AssociatedToken, token::Token, token_2022::Token2022};
+use wormhole_anchor_sdk::{
+    token_bridge::{
+        program::TokenBridge, Config, SEED_PREFIX_AUTHORITY_SIGNER, SEED_PREFIX_CUSTODY_SIGNER,
+        SEED_PREFIX_EMITTER, SEED_PREFIX_MINT_AUTHORITY,
+    },
+    wormhole::{program::Wormhole, BridgeData, FeeCollector, SequenceTracker},
+};
 
 use crate::state::{RedeemerConfig, SenderConfig, LUT, SEED_LUT_AUTHORITY, SEED_PREFIX_LUT};
 
@@ -68,7 +75,7 @@ pub struct Initialize<'info> {
     pub lut: Account<'info, LUT>,
 
     #[account(
-        address = address_lookup_table::program::id(), 
+        address = address_lookup_table::program::id(),
         executable
     )]
     /// CHECK: address lookup table program (checked by instruction)
@@ -118,14 +125,29 @@ pub fn initialize(ctx: Context<Initialize>, recent_slot: u64) -> Result<()> {
         ],
     )?;
 
+    let emitter = Pubkey::find_program_address(&[SEED_PREFIX_EMITTER], &TokenBridge::id()).0;
+
     let entries = vec![
-        Wormhole::id(),
+        crate::id(),
+        Pubkey::find_program_address(&[SenderConfig::SEED_PREFIX], &crate::id()).0,
+        Pubkey::find_program_address(&[RedeemerConfig::SEED_PREFIX], &crate::id()).0,
         TokenBridge::id(),
-        // Pubkey::find_program_address(&[BRIDGE_SEED], &WORMHOLE_PROGRAM_ID).0,
-        // Pubkey::find_program_address(&[FEE_COLLECTOR_SEED], &WORMHOLE_PROGRAM_ID).0,
-        // emitter,
-        // Pubkey::find_program_address(&[SEQUENCE_SEED, emitter.as_ref()], &WORMHOLE_PROGRAM_ID).0,
-        // TODO: figure out what else can live here to help transfers AND complete be smaller
+        Pubkey::find_program_address(&[Config::SEED_PREFIX], &TokenBridge::id()).0,
+        Pubkey::find_program_address(&[SEED_PREFIX_AUTHORITY_SIGNER], &TokenBridge::id()).0,
+        Pubkey::find_program_address(&[SEED_PREFIX_CUSTODY_SIGNER], &TokenBridge::id()).0,
+        Pubkey::find_program_address(&[SEED_PREFIX_MINT_AUTHORITY], &TokenBridge::id()).0,
+        emitter,
+        Pubkey::find_program_address(
+            &[SequenceTracker::SEED_PREFIX, emitter.as_ref()],
+            &Wormhole::id(),
+        )
+        .0,
+        Wormhole::id(),
+        Pubkey::find_program_address(&[BridgeData::SEED_PREFIX], &Wormhole::id()).0,
+        Pubkey::find_program_address(&[FeeCollector::SEED_PREFIX], &Wormhole::id()).0,
+        Token::id(),
+        Token2022::id(),
+        AssociatedToken::id(),
         System::id(),
         clock::id(),
         Rent::id(),
