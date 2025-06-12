@@ -14,5 +14,8 @@ module.exports = async function (provider) {
   const program = anchor.workspace
     .TokenBridgeRelayer as Program<TokenBridgeRelayer>;
 
-  program.methods.initialize().rpc({ commitment: "confirmed" });
+  const recentSlot = (await program.provider.connection.getSlot()) - 1;
+  program.methods
+    .initialize(new anchor.BN(recentSlot))
+    .rpc({ commitment: "confirmed" });
 };

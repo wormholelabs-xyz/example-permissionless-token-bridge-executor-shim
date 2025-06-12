@@ -1,5 +1,6 @@
 import {
   AnchorProvider,
+  BN,
   Program,
   setProvider,
   Wallet,
@@ -31,6 +32,7 @@ const program = new Program<TokenBridgeRelayer>(
   TokenBridgeRelayerIdl as TokenBridgeRelayer,
 );
 
-const tx = await program.methods.initialize().rpc();
+const recentSlot = (await program.provider.connection.getSlot()) - 1;
+const tx = await program.methods.initialize(new BN(recentSlot)).rpc();
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);

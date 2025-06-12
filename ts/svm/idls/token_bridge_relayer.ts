@@ -65,7 +65,7 @@ export type TokenBridgeRelayer = {
           docs: [
             "Recipient associated token account. The recipient authority check",
             "is necessary to ensure that the recipient is the intended recipient",
-            "of the bridged tokens. Mutable.",
+            "of the bridged tokens and create the token account if needed. Mutable.",
           ];
           writable: true;
           pda: {
@@ -75,41 +75,8 @@ export type TokenBridgeRelayer = {
                 path: "recipient";
               },
               {
-                kind: "const";
-                value: [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169,
-                ];
+                kind: "account";
+                path: "tokenProgram";
               },
               {
                 kind: "account";
@@ -252,12 +219,15 @@ export type TokenBridgeRelayer = {
           address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          name: "tokenProgram";
         },
         {
-          name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+          name: "associatedTokenProgram";
+          address: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
           name: "rent";
@@ -324,7 +294,7 @@ export type TokenBridgeRelayer = {
           docs: [
             "Recipient associated token account. The recipient authority check",
             "is necessary to ensure that the recipient is the intended recipient",
-            "of the bridged tokens. Mutable.",
+            "of the bridged tokens and create the token account if needed. Mutable.",
           ];
           writable: true;
           pda: {
@@ -334,41 +304,8 @@ export type TokenBridgeRelayer = {
                 path: "recipient";
               },
               {
-                kind: "const";
-                value: [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169,
-                ];
+                kind: "account";
+                path: "tokenProgram";
               },
               {
                 kind: "account";
@@ -515,12 +452,15 @@ export type TokenBridgeRelayer = {
           address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
         },
         {
-          name: "systemProgram";
-          address: "11111111111111111111111111111111";
+          name: "tokenProgram";
         },
         {
-          name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+          name: "associatedTokenProgram";
+          address: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
         {
           name: "rent";
@@ -580,12 +520,111 @@ export type TokenBridgeRelayer = {
           };
         },
         {
+          name: "authority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  108,
+                  117,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  111,
+                  114,
+                  105,
+                  116,
+                  121,
+                ];
+              },
+            ];
+          };
+        },
+        {
+          name: "lutAddress";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "account";
+                path: "authority";
+              },
+              {
+                kind: "arg";
+                path: "recentSlot";
+              },
+            ];
+            program: {
+              kind: "const";
+              value: [
+                2,
+                119,
+                166,
+                175,
+                151,
+                51,
+                155,
+                122,
+                200,
+                141,
+                24,
+                146,
+                201,
+                4,
+                70,
+                245,
+                0,
+                2,
+                48,
+                146,
+                102,
+                246,
+                46,
+                83,
+                193,
+                24,
+                36,
+                73,
+                130,
+                0,
+                0,
+                0,
+              ];
+            };
+          };
+        },
+        {
+          name: "lut";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [108, 117, 116];
+              },
+            ];
+          };
+        },
+        {
+          name: "lutProgram";
+          address: "AddressLookupTab1e1111111111111111111111111";
+        },
+        {
           name: "systemProgram";
           docs: ["System program."];
           address: "11111111111111111111111111111111";
         },
       ];
-      args: [];
+      args: [
+        {
+          name: "recentSlot";
+          type: "u64";
+        },
+      ];
     },
     {
       name: "resolveExecuteVaaV1";
@@ -689,41 +728,8 @@ export type TokenBridgeRelayer = {
                 path: "payer";
               },
               {
-                kind: "const";
-                value: [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169,
-                ];
+                kind: "account";
+                path: "tokenProgram";
               },
               {
                 kind: "account";
@@ -842,7 +848,6 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         },
         {
           name: "wormholeProgram";
@@ -851,6 +856,10 @@ export type TokenBridgeRelayer = {
         {
           name: "tokenBridgeProgram";
           address: "DZnkkTmCiFWfYTfT41X3Rd1kDgozqzxWaHqsw6W4x2oe";
+        },
+        {
+          name: "associatedTokenProgram";
+          address: "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
         },
         {
           name: "executorProgram";
@@ -942,41 +951,8 @@ export type TokenBridgeRelayer = {
                 path: "payer";
               },
               {
-                kind: "const";
-                value: [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169,
-                ];
+                kind: "account";
+                path: "tokenProgram";
               },
               {
                 kind: "account";
@@ -1100,7 +1076,6 @@ export type TokenBridgeRelayer = {
         },
         {
           name: "tokenProgram";
-          address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         },
         {
           name: "executorProgram";
@@ -1126,6 +1101,10 @@ export type TokenBridgeRelayer = {
     },
   ];
   accounts: [
+    {
+      name: "lut";
+      discriminator: [112, 62, 48, 33, 152, 111, 231, 21];
+    },
     {
       name: "redeemerConfig";
       discriminator: [187, 195, 13, 200, 41, 129, 85, 191];
@@ -1363,6 +1342,22 @@ export type TokenBridgeRelayer = {
                 name: "instructionGroup";
               };
             };
+          },
+        ];
+      };
+    },
+    {
+      name: "lut";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "address";
+            type: "pubkey";
           },
         ];
       };
