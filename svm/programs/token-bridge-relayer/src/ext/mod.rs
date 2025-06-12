@@ -13,3 +13,7 @@ pub fn make_vaa_v1_request(chain: u16, address: [u8; 32], sequence: u64) -> Vec<
     out.extend_from_slice(&sequence.to_be_bytes());
     out
 }
+
+mod instructions;
+
+pub use instructions::*;

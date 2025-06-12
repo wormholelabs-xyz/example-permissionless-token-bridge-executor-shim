@@ -10,7 +10,7 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 use wormhole_anchor_sdk::{
-    token_bridge::{self, program::TokenBridge},
+    token_bridge::program::TokenBridge,
     wormhole::{program::Wormhole, SEED_PREFIX_POSTED_VAA},
 };
 
@@ -147,9 +147,9 @@ pub fn complete_wrapped_transfer_with_relay(
     );
 
     // Redeem the token transfer to the tmp_token_account.
-    token_bridge::complete_transfer_wrapped_with_payload(CpiContext::new_with_signer(
+    crate::ext::complete_transfer_wrapped_with_payload(CpiContext::new_with_signer(
         ctx.accounts.token_bridge_program.to_account_info(),
-        token_bridge::CompleteTransferWrappedWithPayload {
+        crate::ext::CompleteTransferWrappedWithPayload {
             payer: ctx.accounts.payer.to_account_info(),
             config: ctx.accounts.token_bridge_config.to_account_info(),
             vaa: ctx.accounts.vaa.to_account_info(),

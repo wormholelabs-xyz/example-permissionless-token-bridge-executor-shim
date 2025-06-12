@@ -9,7 +9,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use executor::{program::Executor, types::RequestForExecutionArgs};
 use wormhole_anchor_sdk::{
-    token_bridge::{self, program::TokenBridge},
+    token_bridge::program::TokenBridge,
     wormhole::{self, program::Wormhole},
 };
 
@@ -182,10 +182,10 @@ pub fn transfer_wrapped_tokens_with_relay(
     let config_seeds = &[SenderConfig::SEED_PREFIX.as_ref(), &[config.bump]];
 
     // Bridge wrapped token with encoded payload.
-    token_bridge::transfer_wrapped_with_payload(
+    crate::ext::transfer_wrapped_with_payload(
         CpiContext::new_with_signer(
             ctx.accounts.token_bridge_program.to_account_info(),
-            token_bridge::TransferWrappedWithPayload {
+            crate::ext::TransferWrappedWithPayload {
                 payer: payer.to_account_info(),
                 config: ctx.accounts.token_bridge_config.to_account_info(),
                 from: tmp_token_account.to_account_info(),
