@@ -37,6 +37,31 @@ describe("token_bridge_relayer", () => {
     [Buffer.from("emitter")],
     tokenBridgeProgram,
   )[0];
+  const tokenBridgeAuthoritySigner =
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("authority_signer")],
+      tokenBridgeProgram,
+    )[0];
+  const tokenBridgeCustodySigner = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("custody_signer")],
+    tokenBridgeProgram,
+  )[0];
+  const tokenBridgeMintSigner = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("mint_signer")],
+    tokenBridgeProgram,
+  )[0];
+  const wormholeBridgeData = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("Bridge")],
+    wormholeProgram,
+  )[0];
+  const tokenBridgeSequence = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("Sequence"), tokenBridgeEmitter.toBytes()],
+    wormholeProgram,
+  )[0];
+  const wormholeFeeCollector = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("fee_collector")],
+    wormholeProgram,
+  )[0];
   const getTokenBridgeCustody = (mint: anchor.web3.PublicKey) =>
     anchor.web3.PublicKey.findProgramAddressSync(
       [mint.toBuffer()],
@@ -47,6 +72,49 @@ describe("token_bridge_relayer", () => {
     const recentSlot = (await program.provider.connection.getSlot()) - 1;
     const tx = await program.methods.initialize(new BN(recentSlot)).rpc();
     console.log("Your transaction signature", tx);
+  });
+
+  it("Has the correct accounts in the LUT!", async () => {
+    // wait for lut to warm up
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const lutPointer = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("lut")],
+      program.programId,
+    )[0];
+    const lutAddress = (await program.account.lut.fetch(lutPointer)).address;
+    const lut =
+      await program.provider.connection.getAddressLookupTable(lutAddress);
+    if (!lut.value) {
+      throw new Error("LUT was null, did you initialize?");
+    }
+    expect(lut.value.state.addresses.map((a) => a.toString())).to.deep.equal([
+      program.programId.toString(),
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("sender")],
+        program.programId,
+      )[0].toString(),
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [Buffer.from("redeemer")],
+        program.programId,
+      )[0].toString(),
+      tokenBridgeProgram.toString(),
+      tokenBridgeConfig.toString(),
+      tokenBridgeAuthoritySigner.toString(),
+      tokenBridgeCustodySigner.toString(),
+      tokenBridgeMintSigner.toString(),
+      tokenBridgeEmitter.toString(),
+      tokenBridgeSequence.toString(),
+      wormholeProgram.toString(),
+      wormholeBridgeData.toString(),
+      wormholeFeeCollector.toString(),
+      "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+      "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+      "11111111111111111111111111111111",
+      "SysvarC1ock11111111111111111111111111111111",
+      "SysvarRent111111111111111111111111111111111",
+      "execXUrAsMnqMmTHj5m7N1YQgsDz3cwGLYCYyuDRciV",
+    ]);
   });
 
   it("Returns execute instruction!", async () => {
@@ -305,34 +373,19 @@ describe("token_bridge_relayer", () => {
         tokenProgram: TOKEN_PROGRAM_ID,
         tokenBridgeConfig,
         tokenBridgeCustody: getTokenBridgeCustody(mint),
-        tokenBridgeAuthoritySigner:
-          anchor.web3.PublicKey.findProgramAddressSync(
-            [Buffer.from("authority_signer")],
-            tokenBridgeProgram,
-          )[0],
-        tokenBridgeCustodySigner: anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("custody_signer")],
-          tokenBridgeProgram,
-        )[0],
-        wormholeBridge: anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("Bridge")],
-          wormholeProgram,
-        )[0],
+        tokenBridgeAuthoritySigner,
+        tokenBridgeCustodySigner,
+        wormholeBridge: wormholeBridgeData,
         tokenBridgeEmitter,
-        tokenBridgeSequence: anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("Sequence"), tokenBridgeEmitter.toBytes()],
-          wormholeProgram,
-        )[0],
-        wormholeFeeCollector: anchor.web3.PublicKey.findProgramAddressSync(
-          [Buffer.from("fee_collector")],
-          wormholeProgram,
-        )[0],
+        tokenBridgeSequence,
+        wormholeFeeCollector,
         wormholeMessage: message.publicKey,
         payee: payee,
         clock: anchor.web3.SYSVAR_CLOCK_PUBKEY,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       })
       .instruction();
+    // console.log(ix.keys.map((k) => k.pubkey.toString()));
     // wait for lut to warm up
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const lutPointer = anchor.web3.PublicKey.findProgramAddressSync(
@@ -358,6 +411,7 @@ describe("token_bridge_relayer", () => {
       recentBlockhash: blockhash,
     }).compileToV0Message([lut.value]);
     const tx = new anchor.web3.VersionedTransaction(messageV0);
+    // console.log(tx.message.staticAccountKeys, tx.message.addressTableLookups);
     tx.sign([program.provider.wallet.payer, message]);
     const hash = await program.provider.sendAndConfirm(tx);
     console.log(
