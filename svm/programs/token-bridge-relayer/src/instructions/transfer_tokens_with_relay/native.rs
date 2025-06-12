@@ -246,10 +246,10 @@ pub fn transfer_native_tokens_with_relay(
     )?;
 
     // Bridge native token with encoded payload.
-    token_bridge::transfer_native_with_payload(
+    crate::ext::transfer_native_with_payload(
         CpiContext::new_with_signer(
             ctx.accounts.token_bridge_program.to_account_info(),
-            token_bridge::TransferNativeWithPayload {
+            crate::ext::TransferNativeWithPayload {
                 payer: payer.to_account_info(),
                 config: ctx.accounts.token_bridge_config.to_account_info(),
                 from: tmp_token_account.to_account_info(),
