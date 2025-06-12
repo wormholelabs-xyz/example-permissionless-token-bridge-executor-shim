@@ -1,74 +1,10 @@
 use anchor_lang::{prelude::*, solana_program};
+pub use wormhole_anchor_sdk::token_bridge::{
+    CompleteTransferNativeWithPayload, CompleteTransferWrappedWithPayload, Instruction,
+    TransferNativeWithPayload, TransferWrapped, TransferWrappedWithPayload,
+};
 
 // Hot Fix for Wormhole Anchor SDK
-
-#[derive(AnchorDeserialize, AnchorSerialize)]
-/// Token Bridge instructions.
-pub enum Instruction {
-    Initialize, // placeholder
-    AttestToken {
-        batch_id: u32,
-    },
-    CompleteNative {},
-    CompleteWrapped {},
-    TransferWrapped {
-        batch_id: u32,
-        amount: u64,
-        fee: u64,
-        recipient_address: [u8; 32],
-        recipient_chain: u16,
-    },
-    TransferNative {
-        batch_id: u32,
-        amount: u64,
-        fee: u64,
-        recipient_address: [u8; 32],
-        recipient_chain: u16,
-    },
-    RegisterChain, // placeholder (governance action)
-    CreateWrapped {},
-    UpgradeContract, // placeholder (governance action)
-    CompleteNativeWithPayload {},
-    CompleteWrappedWithPayload {},
-    TransferWrappedWithPayload {
-        batch_id: u32,
-        amount: u64,
-        recipient_address: [u8; 32],
-        recipient_chain: u16,
-        payload: Vec<u8>,
-        cpi_program_id: Option<Pubkey>,
-    },
-    TransferNativeWithPayload {
-        batch_id: u32,
-        amount: u64,
-        recipient_address: [u8; 32],
-        recipient_chain: u16,
-        payload: Vec<u8>,
-        cpi_program_id: Option<Pubkey>,
-    },
-}
-
-#[derive(Accounts)]
-pub struct TransferNativeWithPayload<'info> {
-    pub payer: AccountInfo<'info>,
-    pub config: AccountInfo<'info>,
-    pub from: AccountInfo<'info>,
-    pub mint: AccountInfo<'info>,
-    pub custody: AccountInfo<'info>,
-    pub authority_signer: AccountInfo<'info>,
-    pub custody_signer: AccountInfo<'info>,
-    pub wormhole_bridge: AccountInfo<'info>,
-    pub wormhole_message: AccountInfo<'info>,
-    pub wormhole_emitter: AccountInfo<'info>,
-    pub wormhole_sequence: AccountInfo<'info>,
-    pub wormhole_fee_collector: AccountInfo<'info>,
-    pub clock: AccountInfo<'info>,
-    pub sender: AccountInfo<'info>,
-    pub rent: AccountInfo<'info>,
-    pub system_program: AccountInfo<'info>,
-    pub token_program: AccountInfo<'info>,
-    pub wormhole_program: AccountInfo<'info>,
-}
 
 pub fn transfer_native_with_payload<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, TransferNativeWithPayload<'info>>,
@@ -120,24 +56,6 @@ pub fn transfer_native_with_payload<'info>(
     .map_err(Into::into)
 }
 
-#[derive(Accounts)]
-pub struct CompleteTransferNativeWithPayload<'info> {
-    pub payer: AccountInfo<'info>,
-    pub config: AccountInfo<'info>,
-    pub vaa: AccountInfo<'info>,
-    pub claim: AccountInfo<'info>,
-    pub foreign_endpoint: AccountInfo<'info>,
-    pub to: AccountInfo<'info>,
-    pub redeemer: AccountInfo<'info>,
-    pub custody: AccountInfo<'info>,
-    pub mint: AccountInfo<'info>,
-    pub custody_signer: AccountInfo<'info>,
-    pub rent: AccountInfo<'info>,
-    pub system_program: AccountInfo<'info>,
-    pub token_program: AccountInfo<'info>,
-    pub wormhole_program: AccountInfo<'info>,
-}
-
 pub fn complete_transfer_native_with_payload<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, CompleteTransferNativeWithPayload<'info>>,
 ) -> Result<()> {
@@ -169,28 +87,6 @@ pub fn complete_transfer_native_with_payload<'info>(
         ctx.signer_seeds,
     )
     .map_err(Into::into)
-}
-
-#[derive(Accounts)]
-pub struct TransferWrappedWithPayload<'info> {
-    pub payer: AccountInfo<'info>,
-    pub config: AccountInfo<'info>,
-    pub from: AccountInfo<'info>,
-    pub from_owner: AccountInfo<'info>,
-    pub wrapped_mint: AccountInfo<'info>,
-    pub wrapped_metadata: AccountInfo<'info>,
-    pub authority_signer: AccountInfo<'info>,
-    pub wormhole_bridge: AccountInfo<'info>,
-    pub wormhole_message: AccountInfo<'info>,
-    pub wormhole_emitter: AccountInfo<'info>,
-    pub wormhole_sequence: AccountInfo<'info>,
-    pub wormhole_fee_collector: AccountInfo<'info>,
-    pub clock: AccountInfo<'info>,
-    pub sender: AccountInfo<'info>,
-    pub rent: AccountInfo<'info>,
-    pub system_program: AccountInfo<'info>,
-    pub token_program: AccountInfo<'info>,
-    pub wormhole_program: AccountInfo<'info>,
 }
 
 pub fn transfer_wrapped_with_payload<'info>(
@@ -243,24 +139,6 @@ pub fn transfer_wrapped_with_payload<'info>(
     .map_err(Into::into)
 }
 
-#[derive(Accounts)]
-pub struct CompleteTransferWrappedWithPayload<'info> {
-    pub payer: AccountInfo<'info>,
-    pub config: AccountInfo<'info>,
-    pub vaa: AccountInfo<'info>,
-    pub claim: AccountInfo<'info>,
-    pub foreign_endpoint: AccountInfo<'info>,
-    pub to: AccountInfo<'info>,
-    pub redeemer: AccountInfo<'info>,
-    pub wrapped_mint: AccountInfo<'info>,
-    pub wrapped_metadata: AccountInfo<'info>,
-    pub mint_authority: AccountInfo<'info>,
-    pub rent: AccountInfo<'info>,
-    pub system_program: AccountInfo<'info>,
-    pub token_program: AccountInfo<'info>,
-    pub wormhole_program: AccountInfo<'info>,
-}
-
 pub fn complete_transfer_wrapped_with_payload<'info>(
     ctx: CpiContext<'_, '_, '_, 'info, CompleteTransferWrappedWithPayload<'info>>,
 ) -> Result<()> {
@@ -292,27 +170,6 @@ pub fn complete_transfer_wrapped_with_payload<'info>(
         ctx.signer_seeds,
     )
     .map_err(Into::into)
-}
-
-#[derive(Accounts)]
-pub struct TransferWrapped<'info> {
-    pub payer: AccountInfo<'info>,
-    pub config: AccountInfo<'info>,
-    pub from: AccountInfo<'info>,
-    pub from_owner: AccountInfo<'info>,
-    pub wrapped_mint: AccountInfo<'info>,
-    pub wrapped_metadata: AccountInfo<'info>,
-    pub authority_signer: AccountInfo<'info>,
-    pub wormhole_bridge: AccountInfo<'info>,
-    pub wormhole_message: AccountInfo<'info>,
-    pub wormhole_emitter: AccountInfo<'info>,
-    pub wormhole_sequence: AccountInfo<'info>,
-    pub wormhole_fee_collector: AccountInfo<'info>,
-    pub clock: AccountInfo<'info>,
-    pub rent: AccountInfo<'info>,
-    pub system_program: AccountInfo<'info>,
-    pub token_program: AccountInfo<'info>,
-    pub wormhole_program: AccountInfo<'info>,
 }
 
 pub fn transfer_wrapped<'info>(
