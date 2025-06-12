@@ -5,8 +5,8 @@ use anchor_lang::{
 };
 use anchor_spl::associated_token::{get_associated_token_address_with_program_id, AssociatedToken};
 use executor_account_resolver_svm::{
-    InstructionGroup, InstructionGroups, MissingAccounts, Resolver, RESOLVER_PUBKEY_PAYER,
-    RESOLVER_PUBKEY_POSTED_VAA,
+    find_account, missing_account, InstructionGroup, InstructionGroups, MissingAccounts, Resolver,
+    RESOLVER_PUBKEY_PAYER, RESOLVER_PUBKEY_POSTED_VAA,
 };
 use wormhole_anchor_sdk::{token_bridge::program::TokenBridge, wormhole::program::Wormhole};
 use wormhole_raw_vaas::{token_bridge::TokenBridgePayload, Body};
@@ -14,31 +14,18 @@ use wormhole_raw_vaas::{token_bridge::TokenBridgePayload, Body};
 use crate::{
     error::TokenBridgeRelayerError,
     instruction::{CompleteNativeTransferWithRelay, CompleteWrappedTransferWithRelay},
-    state::{RedeemerConfig, SEED_PREFIX_TMP},
+    state::{RedeemerConfig, LUT, SEED_PREFIX_LUT, SEED_PREFIX_TMP},
     OUR_CHAIN,
 };
 
 #[derive(Accounts)]
 pub struct ResolveExecuteVaaV1 {}
 
-pub fn find_account<'c, 'info>(
-    accs: &'c [AccountInfo<'info>],
-    pubkey: Pubkey,
-) -> Option<&'c AccountInfo<'info>> {
-    accs.iter().find(|acc_info| *acc_info.key == pubkey)
-}
-
-pub fn missing_account(pubkey: Pubkey) -> Resolver<InstructionGroups> {
-    Resolver::Missing(MissingAccounts {
-        accounts: vec![pubkey],
-        address_lookup_tables: vec![],
-    })
-}
-
 pub fn resolve_execute_vaa_v1(
     ctx: Context<ResolveExecuteVaaV1>,
     vaa_body: Vec<u8>,
 ) -> Result<Resolver<InstructionGroups>> {
+    let lut_pointer = Pubkey::find_program_address(&[SEED_PREFIX_LUT], &crate::ID).0;
     // Compute the message hash.
     let message_hash = solana_program::keccak::hashv(&[&vaa_body]).to_bytes();
     // Parse the body.
@@ -73,7 +60,16 @@ pub fn resolve_execute_vaa_v1(
         let mint_info = if let Some(acc_info) = find_account(ctx.remaining_accounts, mint) {
             acc_info
         } else {
-            return Ok(missing_account(mint));
+            return Ok(Resolver::Missing(MissingAccounts {
+                accounts: vec![mint, lut_pointer],
+                address_lookup_tables: vec![],
+            }));
+        };
+        let lut = if let Some(acc_info) = find_account(ctx.remaining_accounts, lut_pointer) {
+            let mut buf = &acc_info.try_borrow_mut_data()?[..];
+            LUT::try_deserialize(&mut buf)?
+        } else {
+            return Ok(missing_account(lut_pointer));
         };
         let token_program = *mint_info.owner;
         let recipient = Pubkey::new_from_array(
@@ -190,7 +186,7 @@ pub fn resolve_execute_vaa_v1(
                     ],
                 }
                 .into()],
-                address_lookup_tables: vec![],
+                address_lookup_tables: vec![lut.address],
             },
         ])))
     } else {
@@ -210,7 +206,16 @@ pub fn resolve_execute_vaa_v1(
         {
             acc_info
         } else {
-            return Ok(missing_account(token_bridge_wrapped_mint));
+            return Ok(Resolver::Missing(MissingAccounts {
+                accounts: vec![token_bridge_wrapped_mint, lut_pointer],
+                address_lookup_tables: vec![],
+            }));
+        };
+        let lut = if let Some(acc_info) = find_account(ctx.remaining_accounts, lut_pointer) {
+            let mut buf = &acc_info.try_borrow_mut_data()?[..];
+            LUT::try_deserialize(&mut buf)?
+        } else {
+            return Ok(missing_account(lut_pointer));
         };
         let token_program = *mint_info.owner;
         let recipient = Pubkey::new_from_array(
@@ -331,7 +336,7 @@ pub fn resolve_execute_vaa_v1(
                     ],
                 }
                 .into()],
-                address_lookup_tables: vec![],
+                address_lookup_tables: vec![lut.address],
             },
         ])))
     }

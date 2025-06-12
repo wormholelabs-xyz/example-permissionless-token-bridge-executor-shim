@@ -26,7 +26,7 @@ idl-build = [
 [dependencies]
 anchor-lang = "0.31.1"
 anchor-spl = "0.31.1"
-executor-account-resolver-svm = { version = "0.0.1", git = "https://github.com/wormholelabs-xyz/executor-account-resolver-svm", rev = "5e65c12f9d588596b563de302d947edeb0177f3b" }
+executor-account-resolver-svm = { version = "0.0.1", git = "https://github.com/wormholelabs-xyz/executor-account-resolver-svm", rev = "a39fe39cece715b3e1d1afef1f6e47740595a562" }
 wormhole-anchor-sdk = { version = "0.31.0", git = "https://github.com/wormhole-foundation/wormhole-scaffolding", rev = "3be80a92579b108b5d6fffe234c6e18322e2c3b6", default-features = false, features = [
     "token-bridge",
 ]}
