@@ -44,7 +44,6 @@ describe("token_bridge_relayer", () => {
     )[0];
 
   it("Is initialized!", async () => {
-    // Add your test here.
     const recentSlot = (await program.provider.connection.getSlot()) - 1;
     const tx = await program.methods.initialize(new BN(recentSlot)).rpc();
     console.log("Your transaction signature", tx);
@@ -64,6 +63,11 @@ describe("token_bridge_relayer", () => {
     const mint = new anchor.web3.PublicKey(
       "So11111111111111111111111111111111111111112",
     );
+    const lutPointerAddress = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("lut")],
+      program.programId,
+    )[0];
+    const lutPointer = await program.account.lut.fetch(lutPointerAddress);
     const first_result = await program.methods
       .resolveExecuteVaaV1(vaa_body)
       .view();
@@ -71,11 +75,19 @@ describe("token_bridge_relayer", () => {
     expect(first_result.missing?.[0]?.accounts?.[0]?.toString()).to.eq(
       mint.toString(),
     );
+    expect(first_result.missing?.[0]?.accounts?.[1]?.toString()).to.eq(
+      lutPointerAddress.toString(),
+    );
     const result = await program.methods
       .resolveExecuteVaaV1(vaa_body)
       .remainingAccounts([
         {
           pubkey: mint,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: lutPointerAddress,
           isSigner: false,
           isWritable: false,
         },
@@ -225,6 +237,9 @@ describe("token_bridge_relayer", () => {
       data: "8f51ed856cf1be9d" + vaa_hash,
     };
     const resolvedResult = result.resolved[0][0];
+    expect(resolvedResult[0].addressLookupTables[0].toString()).to.equal(
+      lutPointer.address.toString(),
+    );
     const firstIx = resolvedResult[0].instructions[0];
     const accts = firstIx.accounts.map((a) => ({
       ...a,
