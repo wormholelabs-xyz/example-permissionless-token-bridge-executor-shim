@@ -176,7 +176,8 @@ contract TokenBridgeRelayer is
         // refund dust
         uint256 dust = amount - denormalizeAmount(normalizeAmount(amount, 18), 18);
         if (dust > 0) {
-            payable(msg.sender).transfer(dust);
+            (bool success,) = payable(msg.sender).call{value: dust}("");
+            require(success, "Failed to refund dust");
         }
 
         // remove dust from amount and cache WETH
@@ -285,7 +286,8 @@ contract TokenBridgeRelayer is
         if (token == address(weth) && unwrapWeth) {
             // withdraw weth and send to the recipient
             weth.withdraw(amount);
-            payable(recipient).transfer(amount);
+            (bool success,) = payable(recipient).call{value: amount}("");
+            require(success, "Failed to transfer to recipient");
         } else {
             SafeERC20.safeTransfer(IERC20(token), recipient, amount);
         }
