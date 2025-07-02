@@ -251,7 +251,7 @@ pub fn resolve_execute_vaa_v1(
                         },
                         AccountMeta {
                             pubkey: token_bridge_wrapped_mint,
-                            is_writable: false,
+                            is_writable: true,
                             is_signer: false,
                         },
                         AccountMeta {
