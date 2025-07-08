@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["testnet"]
+default = ["mainnet"]
 mainnet = ["wormhole-anchor-sdk/mainnet"]
 testnet = ["wormhole-anchor-sdk/solana-devnet"]
 localnet = ["wormhole-anchor-sdk/tilt-devnet"]
