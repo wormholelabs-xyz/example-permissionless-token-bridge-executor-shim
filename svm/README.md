@@ -10,22 +10,10 @@ anchor test
 
 ## Building
 
-### Tilt
+Note: the environment variables are defined twice, once for the verifiable build in docker and outside for the IDL build.
 
 ```bash
-anchor build -- --no-default-features --features localnet
-```
-
-### Wormhole Testnet / Solana Devnet
-
-```bash
-anchor build --verifiable -- --no-default-features --features testnet
-```
-
-### Mainnet
-
-```bash
-anchor build --verifiable
+BRIDGE_ADDRESS=addr TOKEN_BRIDGE_ADDRESS=addr anchor build --verifiable -e BRIDGE_ADDRESS=addr -e TOKEN_BRIDGE_ADDRESS=addr
 ```
 
 ## Deploying
