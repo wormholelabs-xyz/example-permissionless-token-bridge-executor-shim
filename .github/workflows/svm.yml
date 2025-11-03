@@ -7,6 +7,9 @@ jobs:
   test:
     name: Anchor Test
     runs-on: ubuntu-latest
+    env:
+      BRIDGE_ADDRESS: worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth
+      TOKEN_BRIDGE_ADDRESS: wormDTUJ6AWPNvk59vGQbDvGJmqbDTdgWgAqcLBCgUb
     defaults:
       run:
         working-directory: svm

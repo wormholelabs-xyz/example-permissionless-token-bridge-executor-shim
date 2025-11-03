@@ -1,6 +1,7 @@
 # Custom Dictionary Words
 Aptos
 Devnet
+keypair
 Permissionless
 permissionlessly
 Ruleset
