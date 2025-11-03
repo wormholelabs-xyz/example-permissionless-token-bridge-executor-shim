@@ -9,10 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_bridge_relayer"
 
 [features]
-default = ["mainnet"]
-mainnet = ["wormhole-anchor-sdk/mainnet"]
-testnet = ["wormhole-anchor-sdk/solana-devnet"]
-localnet = ["wormhole-anchor-sdk/tilt-devnet"]
+default = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -27,7 +24,7 @@ idl-build = [
 anchor-lang = "0.31.1"
 anchor-spl = "0.31.1"
 executor-account-resolver-svm = { version = "0.0.1", git = "https://github.com/wormholelabs-xyz/executor-account-resolver-svm", rev = "a39fe39cece715b3e1d1afef1f6e47740595a562" }
-wormhole-anchor-sdk = { version = "0.31.0", git = "https://github.com/wormhole-foundation/wormhole-scaffolding", rev = "3be80a92579b108b5d6fffe234c6e18322e2c3b6", default-features = false, features = [
-    "token-bridge",
+wormhole-anchor-sdk = { version = "0.31.0", git = "https://github.com/wormhole-foundation/wormhole-scaffolding", rev = "fbaea64cc0089125d81e2e4ee849d8e028d13000", default-features = false, features = [
+    "token-bridge", "bridge-address-from-env"
 ]}
 wormhole-raw-vaas = "0.3.0"
