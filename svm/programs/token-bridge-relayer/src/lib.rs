@@ -4,7 +4,7 @@ use executor_account_resolver_svm::{InstructionGroups, Resolver, RESOLVER_EXECUT
 declare_id!("tbr7Qje6qBzPwfM52csL5KFi8ps5c5vDyiVVBLYVdRf");
 
 // TODO: cfg_if
-pub const OUR_CHAIN: u16 = 1;
+pub const OUR_CHAIN: u16 = 51;
 
 mod instructions;
 pub(crate) use instructions::*;
