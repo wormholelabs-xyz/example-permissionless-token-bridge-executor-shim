@@ -1,0 +1,16 @@
+name: sui
+
+on: pull_request
+
+jobs:
+  sui-test:
+    name: Run Build and Tests
+    runs-on: ubuntu-latest
+    container: mysten/sui-tools:mainnet-v1.57.3@sha256:2ec8e8abdf73ab158df4a82406f448d69ade64303d4b30669d2fdec263f9be5f
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Sui Token Bridge Relayer v4
+        working-directory: sui/token_bridge_relayer
+        run: |
+          sui move build
+          sui move test
