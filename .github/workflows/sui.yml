@@ -14,3 +14,8 @@ jobs:
         run: |
           sui move build
           sui move test
+      - name: Test Sui Token Bridge Relayer v4
+        working-directory: sui/token_bridge_ptb_resolver
+        run: |
+          sui move build
+          sui move test
