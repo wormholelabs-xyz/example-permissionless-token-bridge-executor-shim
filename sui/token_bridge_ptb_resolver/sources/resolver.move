@@ -118,7 +118,9 @@ module token_bridge_ptb_resolver::resolver {
     ) {
         assert!(!string::is_empty(&coin_type), E_INVALID_COIN_TYPE);
 
-        let vaa_input = builder.add_pure_input(vaa_bytes);
+        // IMPORTANT: Use add_pure_input_raw_bytes instead of add_pure_input to avoid double BCS encoding
+        // The VAA bytes are already in the correct format and should not be BCS-encoded again
+        let vaa_input = builder.add_pure_input_raw_bytes(vaa_bytes);
 
         let clock = builder.add_object_input(
             ptb_types::create_object_ref(@0x6, 0, vector::empty())
