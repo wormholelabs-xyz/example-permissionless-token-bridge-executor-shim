@@ -211,8 +211,90 @@ async function testDirectSolanaRedeem() {
   console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
 }
 
+async function testSuiToAvalanche() {
+  const { transfer: suiTransfer } = await import("./sui");
+  const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
+  const { SuiClient, getFullnodeUrl } = await import("@mysten/sui/client");
+
+  const privateKeyHex = process.env.SUI_PRIVATE_KEY;
+  if (!privateKeyHex) {
+    console.log("Skipping Sui to Avalanche test - SUI_PRIVATE_KEY not set");
+    return;
+  }
+
+  const privateKeyBytes = Buffer.from(privateKeyHex, "hex");
+  const keypair = Ed25519Keypair.fromSecretKey(privateKeyBytes);
+
+  console.log(`Sui sender address: ${keypair.toSuiAddress()}`);
+
+  const client = new SuiClient({ url: getFullnodeUrl("testnet") });
+
+  // Sui deployment addresses
+  const suiDeployment = DEPLOYMENTS.Testnet?.Sui;
+  if (!suiDeployment) {
+    throw new Error("No Sui deployment");
+  }
+
+  const dstChain: Chain = "Avalanche";
+  const dstChainId = chainToChainId(dstChain);
+  const dstDeployment = DEPLOYMENTS.Testnet?.Avalanche;
+  if (!dstDeployment) {
+    throw new Error("No deployment on Avalanche");
+  }
+
+  const dstTransferRecipient = addressToBytes32(dstDeployment as `0x${string}`);
+
+  const relayInstructions = encodeRelayInstructions([
+    { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
+  ]);
+
+  const { signedQuote: quote, estimatedCost: estimate } = await fetchQuote(
+    EXECUTOR_URL,
+    "Sui",
+    "Avalanche",
+    relayInstructions,
+  );
+  console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
+
+  // Transfer 0.001 SUI to Avalanche
+  const amount = 1_000_000n; // 0.001 SUI in MIST
+  const messageFee = 1000000n; // 0.001 SUI for Wormhole message fee
+
+  const digest = await suiTransfer(
+    client,
+    keypair,
+    "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0", // tokenBridgePackageId - Testnet
+    suiDeployment, // relayerPackageId
+    "0x5205122e46cec8dc99ef25ac6d222dc44e3634230e98407c3d61b18d3c6223f7", // relayerStateId
+    "0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790", // wormholeStateId
+    "0x6fb10cdb7aa299e9a4308752dadecb049ff55a892de92992a1edbd7912b3d6da", // tokenBridgeStateId
+    "0x2::sui::SUI", // coinType
+    amount,
+    dstChainId,
+    addressToBytes32(eth_account.address),
+    dstDeployment as `0x${string}`,
+    dstDeployment as `0x${string}`,
+    messageFee,
+    estimate,
+    Buffer.from(quote.substring(2), "hex"),
+    Buffer.from(relayInstructions.substring(2), "hex"),
+    0, // nonce
+  );
+
+  console.log(`https://suiscan.xyz/testnet/tx/${digest}`);
+  console.log(
+    `https://wormholescan.io/#/tx/${digest}?network=Testnet&view=overview`,
+  );
+  console.log(
+    `https://wormholelabs-xyz.github.io/executor-explorer/#/chain/21/tx/${digest}?endpoint=${encodeURIComponent(
+      EXECUTOR_URL,
+    )}`,
+  );
+}
+
 (async () => {
   await testSolanaToAvalanche();
   await testAvalancheToSolana();
+  await testSuiToAvalanche();
   // await testDirectSolanaRedeem();
 })();
