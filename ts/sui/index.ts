@@ -31,10 +31,10 @@ export async function transfer(
   const [messageFeeCoins] = tx.splitCoins(tx.gas, [messageFee]);
   const [executorPaymentCoin] = tx.splitCoins(tx.gas, [executorPayment]);
 
-  // Create VerifiedAsset by calling token_registry::verified_asset
-  // This is a public function that creates the asset info on the fly
+  // Create VerifiedAsset by calling state::verified_asset
+  // This is a convenience function that internally borrows the token registry
   const [verifiedAsset] = tx.moveCall({
-    target: `${tokenBridgePackageId}::token_registry::verified_asset`,
+    target: `${tokenBridgePackageId}::state::verified_asset`,
     arguments: [tx.object(tokenBridgeStateId)],
     typeArguments: [coinType],
   });

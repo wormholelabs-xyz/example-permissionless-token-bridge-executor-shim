@@ -216,14 +216,13 @@ async function testSuiToAvalanche() {
   const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
   const { SuiClient, getFullnodeUrl } = await import("@mysten/sui/client");
 
-  const privateKeyHex = process.env.SUI_PRIVATE_KEY;
-  if (!privateKeyHex) {
+  const privateKey = process.env.SUI_PRIVATE_KEY;
+  if (!privateKey) {
     console.log("Skipping Sui to Avalanche test - SUI_PRIVATE_KEY not set");
     return;
   }
 
-  const privateKeyBytes = Buffer.from(privateKeyHex, "hex");
-  const keypair = Ed25519Keypair.fromSecretKey(privateKeyBytes);
+  const keypair = Ed25519Keypair.fromSecretKey(privateKey);
 
   console.log(`Sui sender address: ${keypair.toSuiAddress()}`);
 
@@ -242,8 +241,6 @@ async function testSuiToAvalanche() {
     throw new Error("No deployment on Avalanche");
   }
 
-  const dstTransferRecipient = addressToBytes32(dstDeployment as `0x${string}`);
-
   const relayInstructions = encodeRelayInstructions([
     { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
   ]);
@@ -258,7 +255,7 @@ async function testSuiToAvalanche() {
 
   // Transfer 0.001 SUI to Avalanche
   const amount = 1_000_000n; // 0.001 SUI in MIST
-  const messageFee = 1000000n; // 0.001 SUI for Wormhole message fee
+  const messageFee = 0n;
 
   const digest = await suiTransfer(
     client,
