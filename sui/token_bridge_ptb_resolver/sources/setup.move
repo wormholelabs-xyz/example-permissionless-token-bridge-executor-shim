@@ -17,7 +17,7 @@ module token_bridge_ptb_resolver::setup {
     // sui client call --package $PKG \
     //   --module setup \
     //   --function create_state \
-    //   --args $PUBLISHER $PKG "resolver" $WORMHOLE_STATE $TB_STATE $RELAYER_STATE $RELAYER_PKG
+    //   --args $PUBLISHER $PKG "resolver" $WORMHOLE_STATE $TB_STATE $RELAYER_STATE
     // ```
     public fun create_state(
         publisher: &Publisher,
@@ -28,7 +28,6 @@ module token_bridge_ptb_resolver::setup {
         wormhole_state: address,
         token_bridge_state: address,
         relayer_state: address,
-        relayer_package: address,
         ctx: &mut TxContext
     ) {
         // Verify that the publisher is for this package
@@ -43,7 +42,6 @@ module token_bridge_ptb_resolver::setup {
             wormhole_state,
             token_bridge_state,
             relayer_state,
-            relayer_package,
             ctx
         );
 

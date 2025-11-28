@@ -14,7 +14,6 @@ module token_bridge_ptb_resolver::resolver_state {
     // - wormhole_state: Wormhole core state object address
     // - token_bridge_state: Token Bridge state object address
     // - relayer_state: Token Bridge Relayer V4 state object address
-    // - relayer_package: Token Bridge Relayer V4 package address
     public struct State has key, store {
         id: UID,
         package_id: address,
@@ -22,7 +21,6 @@ module token_bridge_ptb_resolver::resolver_state {
         wormhole_state: address,
         token_bridge_state: address,
         relayer_state: address,
-        relayer_package: address,
     }
 
     public(package) fun new(
@@ -31,7 +29,6 @@ module token_bridge_ptb_resolver::resolver_state {
         wormhole_state: address,
         token_bridge_state: address,
         relayer_state: address,
-        relayer_package: address,
         ctx: &mut TxContext
     ): State {
         State {
@@ -41,7 +38,6 @@ module token_bridge_ptb_resolver::resolver_state {
             wormhole_state,
             token_bridge_state,
             relayer_state,
-            relayer_package,
         }
     }
 
@@ -65,10 +61,6 @@ module token_bridge_ptb_resolver::resolver_state {
         self.relayer_state
     }
 
-    public fun relayer_package(self: &State): address {
-        self.relayer_package
-    }
-
     #[test_only]
     public fun new_for_testing(
         package_id: address,
@@ -76,7 +68,6 @@ module token_bridge_ptb_resolver::resolver_state {
         wormhole_state: address,
         token_bridge_state: address,
         relayer_state: address,
-        relayer_package: address,
         ctx: &mut TxContext
     ): State {
         State {
@@ -86,7 +77,6 @@ module token_bridge_ptb_resolver::resolver_state {
             wormhole_state,
             token_bridge_state,
             relayer_state,
-            relayer_package,
         }
     }
 
@@ -99,7 +89,6 @@ module token_bridge_ptb_resolver::resolver_state {
             wormhole_state: _,
             token_bridge_state: _,
             relayer_state: _,
-            relayer_package: _,
         } = state;
         object::delete(id);
     }

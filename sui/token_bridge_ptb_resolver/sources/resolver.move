@@ -25,6 +25,8 @@ module token_bridge_ptb_resolver::resolver {
     const E_INVALID_TOKEN_BRIDGE_PACKAGE: u64 = 2;
     // Coin type not found in Token Bridge registry
     const E_COIN_TYPE_NOT_FOUND: u64 = 3;
+    // Relayer package address could not be resolved
+    const E_INVALID_RELAYER_PACKAGE: u64 = 4;
 
     public fun resolve_vaa(
         resolver_state: &State,
@@ -49,8 +51,13 @@ module token_bridge_ptb_resolver::resolver {
             string::utf8(b"token_bridge_package")
         );
 
-        // Note: TB Relayer V4 doesn't use dynamic package discovery (no CurrentPackage field)
-        // The relayer package address is stored in State.relayer_package
+        // TB Relayer V4 stores package_id directly in State (not as dynamic field)
+        let relayer_package: Option<address> = builder.request_package_lookup(
+            resolver_state::relayer_state(resolver_state),
+            string::utf8(b"package_id"),
+            string::utf8(b""),
+            string::utf8(b"relayer_package")
+        );
 
         // Discover coin type only if token bridge package is available
         let mut coin_type: Option<vector<u8>> = option::none();
@@ -91,6 +98,7 @@ module token_bridge_ptb_resolver::resolver {
         // All lookups resolved - validate we have required data
         assert!(wormhole_package.is_some(), E_INVALID_WORMHOLE_PACKAGE);
         assert!(token_bridge_package.is_some(), E_INVALID_TOKEN_BRIDGE_PACKAGE);
+        assert!(relayer_package.is_some(), E_INVALID_RELAYER_PACKAGE);
         assert!(coin_type.is_some(), E_COIN_TYPE_NOT_FOUND);
 
         // Coin type needs 0x prefix
@@ -103,6 +111,7 @@ module token_bridge_ptb_resolver::resolver {
             vaa_bytes,
             *option::borrow(&wormhole_package),
             *option::borrow(&token_bridge_package),
+            *option::borrow(&relayer_package),
             full_coin_type,
             resolver_state
         );
@@ -113,6 +122,7 @@ module token_bridge_ptb_resolver::resolver {
         vaa_bytes: vector<u8>,
         wormhole_package: address,
         token_bridge_package: address,
+        relayer_package: address,
         coin_type: string::String,
         resolver_state: &State
     ) {
@@ -189,8 +199,6 @@ module token_bridge_ptb_resolver::resolver {
         );
 
         // Command 4: execute_vaa_v1 (TB Relayer V4 execution)
-        let relayer_package = resolver_state::relayer_package(resolver_state);
-
         builder.add_move_call(
             relayer_package,
             string::utf8(b"redeem"),
