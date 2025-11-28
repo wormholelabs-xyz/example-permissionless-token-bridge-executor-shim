@@ -118,18 +118,19 @@ module token_bridge_relayer::relayer_transfer {
             clock
         );
 
-        // Get our relayer's emitter address for Executor VAA request
-        // The emitter address is derived from the EmitterCap's object ID
-        let emitter_address = external_address::to_bytes(
+        // Get Token Bridge's emitter address for Executor VAA request
+        // The VAA is emitted by Token Bridge (not our relayer), so we need to use
+        // Token Bridge's EmitterCap ID for the Executor to find the correct VAA
+        let token_bridge_emitter_address = external_address::to_bytes(
             external_address::from_address(
-                object::id_to_address(&object::id(emitter_cap))
+                state::token_bridge_emitter_address(relayer_state)
             )
         );
 
         // Build Executor VAA v1 request
         let request_bytes = executor_requests::make_vaa_v1_request(
             CHAIN_ID,
-            emitter_address,
+            token_bridge_emitter_address,
             sequence
         );
 
