@@ -51,13 +51,22 @@ module token_bridge_ptb_resolver::resolver {
             string::utf8(b"token_bridge_package")
         );
 
-        // TB Relayer V4 stores package_id directly in State (not as dynamic field)
-        let relayer_package: Option<address> = builder.request_package_lookup(
+        // TB Relayer V4 stores package_id directly in State struct (not as dynamic field)
+        // Use request_object_field_lookup to read the struct field directly
+        let relayer_package_bytes: Option<vector<u8>> = builder.request_object_field_lookup(
             resolver_state::relayer_state(resolver_state),
             string::utf8(b"package_id"),
-            string::utf8(b""),
+            ptb_types::lookup_value_type_address(),
             string::utf8(b"relayer_package")
         );
+
+        // Convert bytes to address option
+        let relayer_package: Option<address> = if (relayer_package_bytes.is_some()) {
+            let bytes = *option::borrow(&relayer_package_bytes);
+            option::some(sui::address::from_bytes(bytes))
+        } else {
+            option::none()
+        };
 
         // Discover coin type only if token bridge package is available
         let mut coin_type: Option<vector<u8>> = option::none();
