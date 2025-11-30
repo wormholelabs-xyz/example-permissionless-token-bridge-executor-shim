@@ -4,7 +4,6 @@
 module token_bridge_ptb_resolver::resolver_tests {
     use std::string;
     use sui::test_scenario::{Self as ts, Scenario};
-    use sui::package;
     use sui_ptb_resolver::ptb_types;
     use token_bridge_ptb_resolver::resolver_state;
     use token_bridge_ptb_resolver::resolver;
@@ -14,7 +13,6 @@ module token_bridge_ptb_resolver::resolver_tests {
     const WORMHOLE_STATE: address = @0xaeab97f96cf9877fee2883315d459552b2b921edc16d7ceac6eab944dd88919c;
     const TOKEN_BRIDGE_STATE: address = @0xc57508ee0d4595e5a8728974a4a93a787d38f339757230d441e895422c07aba9;
     const RELAYER_STATE: address = @0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef;
-    const RELAYER_PACKAGE: address = @0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321;
 
     fun create_test_vaa_transfer_with_payload(): vector<u8> {
         let mut vaa = vector::empty<u8>();
@@ -101,7 +99,6 @@ module token_bridge_ptb_resolver::resolver_tests {
             WORMHOLE_STATE,
             TOKEN_BRIDGE_STATE,
             RELAYER_STATE,
-            RELAYER_PACKAGE,
             ctx
         )
     }
@@ -117,7 +114,6 @@ module token_bridge_ptb_resolver::resolver_tests {
         assert!(resolver_state::wormhole_state(&resolver_state) == WORMHOLE_STATE, 2);
         assert!(resolver_state::token_bridge_state(&resolver_state) == TOKEN_BRIDGE_STATE, 3);
         assert!(resolver_state::relayer_state(&resolver_state) == RELAYER_STATE, 4);
-        assert!(resolver_state::relayer_package(&resolver_state) == RELAYER_PACKAGE, 5);
 
         resolver_state::destroy_for_testing(resolver_state);
         ts::end(scenario);
@@ -350,7 +346,6 @@ module token_bridge_ptb_resolver::resolver_tests {
         let _ = resolver_state::wormhole_state(&resolver_state);
         let _ = resolver_state::token_bridge_state(&resolver_state);
         let _ = resolver_state::relayer_state(&resolver_state);
-        let _ = resolver_state::relayer_package(&resolver_state);
 
         resolver_state::destroy_for_testing(resolver_state);
         ts::end(scenario);

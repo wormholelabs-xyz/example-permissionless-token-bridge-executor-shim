@@ -22,7 +22,7 @@ const CLOCK_ID = "0x6";
  */
 export async function getTokenBridgeEmitterAddress(
   client: SuiClient,
-  tokenBridgeStateId: string
+  tokenBridgeStateId: string,
 ): Promise<string> {
   const state = await client.getObject({
     id: tokenBridgeStateId,
@@ -81,7 +81,7 @@ export async function transfer(
   executorPayment: bigint,
   signedQuoteBytes: Buffer,
   relayInstructions: Buffer,
-  nonce: number
+  nonce: number,
 ): Promise<string> {
   const sender = signer.toSuiAddress();
   const tx = new Transaction();
