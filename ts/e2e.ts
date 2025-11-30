@@ -3,7 +3,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { Chain, chainToChainId } from "@wormhole-foundation/sdk-base";
 import { privateKeyToAccount } from "viem/accounts";
 import { avalancheFuji } from "viem/chains";
-import { DEPLOYMENTS } from ".";
+import { DEPLOYMENTS, SUI_TESTNET } from ".";
 import { fetchQuote } from "./executor/fetch";
 import { encodeRelayInstructions } from "./executor/relayInstructions";
 import {
@@ -33,7 +33,8 @@ const env0xStringRequired = (name: string): `0x${string}` => {
 };
 
 const SOLANA_RPC_URL = "https://api.devnet.solana.com";
-const EXECUTOR_URL = "http://localhost:3000";
+// const EXECUTOR_URL = "http://localhost:3000";
+const EXECUTOR_URL = "https://executor-testnet.labsapis.com";
 
 const connection = new web3.Connection(SOLANA_RPC_URL, "confirmed");
 
@@ -211,8 +212,80 @@ async function testDirectSolanaRedeem() {
   console.log(`https://explorer.solana.com/tx/${tx}?cluster=devnet`);
 }
 
+async function testSuiToAvalanche() {
+  const { transfer: suiTransfer } = await import("./sui");
+  const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
+  const { SuiClient, getFullnodeUrl } = await import("@mysten/sui/client");
+
+  const privateKey = process.env.SUI_KEY;
+  if (!privateKey) {
+    console.log("Skipping Sui to Avalanche test - SUI_KEY not set");
+    return;
+  }
+
+  const keypair = Ed25519Keypair.fromSecretKey(privateKey);
+
+  console.log(`Sui sender address: ${keypair.toSuiAddress()}`);
+
+  const client = new SuiClient({ url: getFullnodeUrl("testnet") });
+
+  const dstChain: Chain = "Avalanche";
+  const dstChainId = chainToChainId(dstChain);
+  const dstDeployment = DEPLOYMENTS.Testnet?.Avalanche;
+  if (!dstDeployment) {
+    throw new Error("No deployment on Avalanche");
+  }
+
+  const relayInstructions = encodeRelayInstructions([
+    { type: "GasInstruction", gasLimit: 250_000n, msgValue: 0n },
+  ]);
+
+  const { signedQuote: quote, estimatedCost: estimate } = await fetchQuote(
+    EXECUTOR_URL,
+    "Sui",
+    "Avalanche",
+    relayInstructions,
+  );
+  console.log(`EXECUTION ESTIMATE: ${estimate.toString()}`);
+
+  // Transfer 0.001 SUI to Avalanche
+  const amount = 1_000_000n; // 0.001 SUI in MIST
+  const messageFee = 0n;
+
+  const digest = await suiTransfer(
+    client,
+    keypair,
+    SUI_TESTNET.tokenBridgePackageId,
+    SUI_TESTNET.relayerPackageId,
+    SUI_TESTNET.relayerStateId,
+    SUI_TESTNET.wormholeStateId,
+    SUI_TESTNET.tokenBridgeStateId,
+    "0x2::sui::SUI", // coinType
+    amount,
+    dstChainId,
+    addressToBytes32(eth_account.address),
+    dstDeployment as `0x${string}`,
+    messageFee,
+    estimate,
+    Buffer.from(quote.substring(2), "hex"),
+    Buffer.from(relayInstructions.substring(2), "hex"),
+    0, // nonce
+  );
+
+  console.log(`https://suiscan.xyz/testnet/tx/${digest}`);
+  console.log(
+    `https://wormholescan.io/#/tx/${digest}?network=Testnet&view=overview`,
+  );
+  console.log(
+    `https://wormholelabs-xyz.github.io/executor-explorer/#/chain/21/tx/${digest}?endpoint=${encodeURIComponent(
+      EXECUTOR_URL,
+    )}`,
+  );
+}
+
 (async () => {
   await testSolanaToAvalanche();
   await testAvalancheToSolana();
+  await testSuiToAvalanche();
   // await testDirectSolanaRedeem();
 })();

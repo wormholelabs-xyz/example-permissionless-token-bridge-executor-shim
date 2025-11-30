@@ -1,3 +1,5 @@
 evm/cache/
 evm/lib/
 evm/out/
+node_modules
+sui/**/build/**
