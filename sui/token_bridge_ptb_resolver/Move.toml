@@ -5,8 +5,8 @@ edition = "2024.beta"
 
 [dependencies]
 sui_ptb_resolver ={ git = "https://github.com/wormholelabs-xyz/sui-ptb-resolver.git", subdir = "sui_ptb_resolver", rev = "main" }
-Wormhole = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/wormhole", rev = "sui/mainnet" }
-TokenBridge = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/token_bridge", rev = "sui/mainnet" }
+Wormhole = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/wormhole", rev = "sui/testnet" }
+TokenBridge = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/token_bridge", rev = "sui/testnet" }
 TokenBridgeRelayerV4 = { git = "https://github.com/wormholelabs-xyz/example-permissionless-token-bridge-executor-shim.git", subdir = "sui/token_bridge_relayer", rev = "sui_tbr_v4" }
 
 [addresses]
