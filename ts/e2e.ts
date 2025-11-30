@@ -3,7 +3,7 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import { Chain, chainToChainId } from "@wormhole-foundation/sdk-base";
 import { privateKeyToAccount } from "viem/accounts";
 import { avalancheFuji } from "viem/chains";
-import { DEPLOYMENTS } from ".";
+import { DEPLOYMENTS, SUI_TESTNET } from ".";
 import { fetchQuote } from "./executor/fetch";
 import { encodeRelayInstructions } from "./executor/relayInstructions";
 import {
@@ -33,7 +33,8 @@ const env0xStringRequired = (name: string): `0x${string}` => {
 };
 
 const SOLANA_RPC_URL = "https://api.devnet.solana.com";
-const EXECUTOR_URL = "http://localhost:3000";
+// const EXECUTOR_URL = "http://localhost:3000";
+const EXECUTOR_URL = "https://executor-testnet.labsapis.com";
 
 const connection = new web3.Connection(SOLANA_RPC_URL, "confirmed");
 
@@ -216,9 +217,9 @@ async function testSuiToAvalanche() {
   const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
   const { SuiClient, getFullnodeUrl } = await import("@mysten/sui/client");
 
-  const privateKey = process.env.SUI_PRIVATE_KEY;
+  const privateKey = process.env.SUI_KEY;
   if (!privateKey) {
-    console.log("Skipping Sui to Avalanche test - SUI_PRIVATE_KEY not set");
+    console.log("Skipping Sui to Avalanche test - SUI_KEY not set");
     return;
   }
 
@@ -227,12 +228,6 @@ async function testSuiToAvalanche() {
   console.log(`Sui sender address: ${keypair.toSuiAddress()}`);
 
   const client = new SuiClient({ url: getFullnodeUrl("testnet") });
-
-  // Sui deployment addresses
-  const suiDeployment = DEPLOYMENTS.Testnet?.Sui;
-  if (!suiDeployment) {
-    throw new Error("No Sui deployment");
-  }
 
   const dstChain: Chain = "Avalanche";
   const dstChainId = chainToChainId(dstChain);
@@ -260,11 +255,11 @@ async function testSuiToAvalanche() {
   const digest = await suiTransfer(
     client,
     keypair,
-    "0x562760fc51d90d4ae1835bac3e91e0e6987d3497b06f066941d3e51f6e8d76d0", // tokenBridgePackageId - Testnet
-    suiDeployment, // relayerPackageId
-    "0x5205122e46cec8dc99ef25ac6d222dc44e3634230e98407c3d61b18d3c6223f7", // relayerStateId
-    "0x31358d198147da50db32eda2562951d53973a0c0ad5ed738e9b17d88b213d790", // wormholeStateId
-    "0x6fb10cdb7aa299e9a4308752dadecb049ff55a892de92992a1edbd7912b3d6da", // tokenBridgeStateId
+    SUI_TESTNET.tokenBridgePackageId,
+    SUI_TESTNET.relayerPackageId,
+    SUI_TESTNET.relayerStateId,
+    SUI_TESTNET.wormholeStateId,
+    SUI_TESTNET.tokenBridgeStateId,
     "0x2::sui::SUI", // coinType
     amount,
     dstChainId,
