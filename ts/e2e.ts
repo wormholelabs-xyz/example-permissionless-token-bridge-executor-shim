@@ -270,7 +270,6 @@ async function testSuiToAvalanche() {
     dstChainId,
     addressToBytes32(eth_account.address),
     dstDeployment as `0x${string}`,
-    dstDeployment as `0x${string}`,
     messageFee,
     estimate,
     Buffer.from(quote.substring(2), "hex"),

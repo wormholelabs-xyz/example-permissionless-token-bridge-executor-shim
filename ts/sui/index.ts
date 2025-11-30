@@ -4,6 +4,66 @@ import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 
 const CLOCK_ID = "0x6";
 
+/**
+ * Fetch the Token Bridge's EmitterCap ID from the Token Bridge State.
+ * This is needed when initializing the Token Bridge Relayer State.
+ *
+ * @param client - SuiClient instance
+ * @param tokenBridgeStateId - Token Bridge State object ID
+ * @returns The Token Bridge EmitterCap ID as a hex string (with 0x prefix)
+ *
+ * @example
+ * ```typescript
+ * const emitterAddress = await getTokenBridgeEmitterAddress(client, TOKEN_BRIDGE_STATE_ID);
+ * // Use this when calling create_state on the relayer:
+ * // sui client call --package $RELAYER_PKG --module state --function create_state \
+ * //   --args $INIT_CAP $WORMHOLE_STATE $emitterAddress $RELAYER_PKG
+ * ```
+ */
+export async function getTokenBridgeEmitterAddress(
+  client: SuiClient,
+  tokenBridgeStateId: string
+): Promise<string> {
+  const state = await client.getObject({
+    id: tokenBridgeStateId,
+    options: { showContent: true },
+  });
+
+  if (state.data?.content?.dataType !== "moveObject") {
+    throw new Error("Invalid Token Bridge State object");
+  }
+
+  const fields = state.data.content.fields as Record<string, unknown>;
+  const emitterCap = fields.emitter_cap as Record<string, unknown>;
+  const emitterCapFields = emitterCap.fields as Record<string, unknown>;
+  const emitterCapId = emitterCapFields.id as Record<string, string>;
+
+  return emitterCapId.id;
+}
+
+/**
+ * Transfer tokens from Sui to another chain via Token Bridge Relayer V4.
+ *
+ * @param client - SuiClient instance
+ * @param signer - Keypair to sign the transaction
+ * @param tokenBridgePackageId - Token Bridge package ID
+ * @param relayerPackageId - Token Bridge Relayer V4 package ID
+ * @param relayerStateId - Token Bridge Relayer V4 State object ID
+ * @param wormholeStateId - Wormhole State object ID
+ * @param tokenBridgeStateId - Token Bridge State object ID
+ * @param coinType - Full coin type string (e.g., "0x2::sui::SUI")
+ * @param amount - Amount to transfer (in base units)
+ * @param targetChain - Wormhole chain ID of destination
+ * @param recipientAddress - 32-byte recipient address on destination (who receives tokens)
+ * @param dstExecutionAddress - Address of the relayer contract on destination chain
+ *                              (this is the redeemer that will execute the transfer)
+ * @param messageFee - Wormhole message fee (in MIST)
+ * @param executorPayment - Payment for Executor relay service (in MIST)
+ * @param signedQuoteBytes - Signed quote from Executor
+ * @param relayInstructions - Relay instructions for Executor
+ * @param nonce - Transaction nonce
+ * @returns Transaction digest
+ */
 export async function transfer(
   client: SuiClient,
   signer: Ed25519Keypair,
@@ -16,13 +76,12 @@ export async function transfer(
   amount: bigint,
   targetChain: number,
   recipientAddress: number[],
-  dstTransferRecipient: string,
   dstExecutionAddress: string,
   messageFee: bigint,
   executorPayment: bigint,
   signedQuoteBytes: Buffer,
   relayInstructions: Buffer,
-  nonce: number,
+  nonce: number
 ): Promise<string> {
   const sender = signer.toSuiAddress();
   const tx = new Transaction();
@@ -46,14 +105,14 @@ export async function transfer(
       tx.object(wormholeStateId),
       tx.object(tokenBridgeStateId),
       transferCoin,
-      verifiedAsset, // Pass the created VerifiedAsset
+      verifiedAsset,
       messageFeeCoins,
       executorPaymentCoin,
       tx.object(CLOCK_ID),
       tx.pure.u16(targetChain),
-      tx.pure.vector("u8", recipientAddress),
-      tx.pure.address(dstTransferRecipient),
-      tx.pure.address(sender), // refund_addr
+      tx.pure.vector("u8", recipientAddress), // Final recipient on destination
+      tx.pure.address(dstExecutionAddress), // Relayer contract that redeems on destination
+      tx.pure.address(sender), // Refund address on source chain
       tx.pure.vector("u8", Array.from(signedQuoteBytes)),
       tx.pure.vector("u8", Array.from(relayInstructions)),
       tx.pure.u32(nonce),
