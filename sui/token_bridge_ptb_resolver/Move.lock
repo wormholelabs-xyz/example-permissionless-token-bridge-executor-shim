@@ -2,7 +2,7 @@
 
 [move]
 version = 3
-manifest_digest = "231A6A2F456DC4E9EDC2D1F5C0E000C4A174DF324BE98F117E030F077426B1D1"
+manifest_digest = "7FD79D8DA44B19AC264012A958CCCA59920C16FDE63AC04C28381D9225CC09D3"
 deps_digest = "04732BFEF428F74DE262001DC455D76B909EBC394B034A9A15CC095E4BDD9CEF"
 dependencies = [
   { id = "Bridge", name = "Bridge" },
@@ -17,7 +17,7 @@ dependencies = [
 
 [[move.package]]
 id = "Bridge"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "f63c9fc78e2171fa174dc43e757ded416c204558", subdir = "crates/sui-framework/packages/bridge" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "d75fae3aa7fa3545b5803980a1e0c965b8bbf48e", subdir = "crates/sui-framework/packages/bridge" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
@@ -27,11 +27,11 @@ dependencies = [
 
 [[move.package]]
 id = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "f63c9fc78e2171fa174dc43e757ded416c204558", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "d75fae3aa7fa3545b5803980a1e0c965b8bbf48e", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 id = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "f63c9fc78e2171fa174dc43e757ded416c204558", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "d75fae3aa7fa3545b5803980a1e0c965b8bbf48e", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
@@ -39,7 +39,7 @@ dependencies = [
 
 [[move.package]]
 id = "SuiSystem"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "f63c9fc78e2171fa174dc43e757ded416c204558", subdir = "crates/sui-framework/packages/sui-system" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "d75fae3aa7fa3545b5803980a1e0c965b8bbf48e", subdir = "crates/sui-framework/packages/sui-system" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
@@ -48,7 +48,7 @@ dependencies = [
 
 [[move.package]]
 id = "TokenBridge"
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui/testnet", subdir = "sui/token_bridge" }
+source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui/mainnet", subdir = "sui/token_bridge" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
@@ -72,7 +72,7 @@ dependencies = [
 
 [[move.package]]
 id = "Wormhole"
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui/testnet", subdir = "sui/wormhole" }
+source = { git = "https://github.com/wormhole-foundation/wormhole.git", rev = "sui/mainnet", subdir = "sui/wormhole" }
 
 dependencies = [
   { id = "Sui", name = "Sui" },
@@ -113,7 +113,7 @@ dependencies = [
 ]
 
 [move.toolchain-version]
-compiler-version = "1.57.0"
+compiler-version = "1.60.1"
 edition = "2024.beta"
 flavor = "sui"
 
@@ -123,4 +123,10 @@ flavor = "sui"
 chain-id = "4c78adac"
 original-published-id = "0x5eeec8433495e7a781d7c2f48a4e4bdfe237329efed5fe3dcc700fe698b19f66"
 latest-published-id = "0x5eeec8433495e7a781d7c2f48a4e4bdfe237329efed5fe3dcc700fe698b19f66"
+published-version = "1"
+
+[env.mainnet]
+chain-id = "35834a8a"
+original-published-id = "0x1ab037d03714732b28429bcef258f5c5b3034949a071c41e07683b0038e0253a"
+latest-published-id = "0x1ab037d03714732b28429bcef258f5c5b3034949a071c41e07683b0038e0253a"
 published-version = "1"
