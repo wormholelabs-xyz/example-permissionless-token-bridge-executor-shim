@@ -12,14 +12,10 @@
 /// This module provides ONLY the Executor callback. If Executor fails or for
 /// standard Token Bridge transfers, users should use Portal SDK directly.
 module token_bridge_relayer::redeem {
-    use wormhole::external_address;
-
     use token_bridge_relayer::message;
     use token_bridge_relayer::state::{Self, State};
     use token_bridge::complete_transfer_with_payload;
     use token_bridge::transfer_with_payload;
-
-    const E_INVALID_PAYLOAD_LENGTH: u64 = 0;
 
     /// Execute VAA v1 - Called by Executor relayer network
     ///
@@ -52,20 +48,10 @@ module token_bridge_relayer::redeem {
                 receipt
             );
 
-        // Extract the payload bytes from TransferWithPayload
-        let payload_bytes = transfer_with_payload::payload(&transfer_payload);
-
-        // Validate payload is 32 bytes (just the recipient address)
-        assert!(
-            std::vector::length(&payload_bytes) == 32,
-            E_INVALID_PAYLOAD_LENGTH
-        );
-
         // Deserialize the payload to get the recipient address
-        let relay_msg = message::deserialize(payload_bytes);
-        let recipient = external_address::to_address(
-            message::recipient(&relay_msg)
-        );
+        let recipient = message::deserialize(transfer_with_payload::payload(&transfer_payload))
+            .recipient()
+            .to_address();
 
         // Transfer all tokens to recipient, no fee deducted
         sui::transfer::public_transfer(coins, recipient);

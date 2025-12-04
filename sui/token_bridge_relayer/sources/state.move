@@ -36,14 +36,10 @@ module token_bridge_relayer::state {
     /// You can find this by inspecting the Token Bridge State object on-chain:
     /// `sui client object <TOKEN_BRIDGE_STATE_ID> --json | jq '.content.fields.emitter_cap.fields.id.id'`
     /// For Sui testnet: 0x40440411a170b4842ae7dee4f4a7b7a58bc0a98566e998850a7bb87bf5dc05b9
-    ///
-    /// package_id: The package address of this relayer contract.
-    /// Used by the PTB resolver to dynamically build move calls.
     public fun create_state(
         init_cap: InitCap,
         wormhole_state: &WormholeState,
         token_bridge_emitter_address: address,
-        package_id: address,
         ctx: &mut sui::tx_context::TxContext
     ) {
         //consume
@@ -54,7 +50,7 @@ module token_bridge_relayer::state {
             id: sui::object::new(ctx),
             emitter_cap: emitter::new(wormhole_state, ctx),
             token_bridge_emitter_address,
-            package_id,
+            package_id: @token_bridge_relayer,
         };
 
         sui::transfer::share_object(state);
