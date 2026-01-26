@@ -6,7 +6,7 @@ jobs:
   sui-test:
     name: Run Build and Tests
     runs-on: ubuntu-latest
-    container: mysten/sui-tools:mainnet-v1.60.1@sha256:a5768e152c0d4694b067302dac01fd8b00395dada47e894a7d268c62416e8ec5
+    container: mysten/sui-tools:mainnet-v1.63.4@sha256:1c2b1c7a46e7584d1edd8875651bcbbc20a198fc2e80cf56304c608d65b17e98
     steps:
       - uses: actions/checkout@v4
       - name: Test Sui Token Bridge Relayer v4
