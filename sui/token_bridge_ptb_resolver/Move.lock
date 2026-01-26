@@ -76,47 +76,11 @@ use_environment = "testnet"
 manifest_digest = "C4FE4C91DE74CBF223B2E380AE40F592177D21870DC2D7EB6227D2D694E05363"
 deps = {}
 
-[pinned.testnet.MoveStdlib_1]
-source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "041c5f2bae2fe52079e44b70514333532d69f4e6" }
-use_environment = "testnet"
-manifest_digest = "C4FE4C91DE74CBF223B2E380AE40F592177D21870DC2D7EB6227D2D694E05363"
-deps = {}
-
 [pinned.testnet.Sui]
 source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "22f9fc9781732d651e18384c9a8eb1dabddf73a6" }
 use_environment = "testnet"
 manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D01C"
 deps = { MoveStdlib = "MoveStdlib" }
-
-[pinned.testnet.Sui_1]
-source = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "041c5f2bae2fe52079e44b70514333532d69f4e6" }
-use_environment = "testnet"
-manifest_digest = "7AFB66695545775FBFBB2D3078ADFD084244D5002392E837FDE21D9EA1C6D01C"
-deps = { MoveStdlib = "MoveStdlib_1" }
-
-[pinned.testnet.TokenBridge]
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/token_bridge", rev = "b71be5cbb9537c4aac8e23e74371affa3825efcd" }
-use_environment = "testnet"
-manifest_digest = "E8E3EA2365F45A4988E810127D18F3654BA438528AC13F6E7EC8C0A1F4BC0F78"
-deps = { Sui = "Sui_1", Wormhole = "Wormhole" }
-
-[pinned.testnet.TokenBridgePTBResolver]
-source = { root = true }
-use_environment = "testnet"
-manifest_digest = "66C1B3EE7FAE6F4B7C1E4B3C4BAFA397057EF37519E6A54171FA90858E72CC66"
-deps = { TokenBridge = "TokenBridge", TokenBridgeRelayerV4 = "TokenBridgeRelayerV4", Wormhole = "Wormhole", std = "MoveStdlib", sui = "Sui", sui_ptb_resolver = "sui_ptb_resolver" }
-
-[pinned.testnet.TokenBridgeRelayerV4]
-source = { local = "../token_bridge_relayer" }
-use_environment = "testnet"
-manifest_digest = "1D9887E0A9E9A6887B41A2D513B993F297F4BFC792202E15B50EDDC70713C32F"
-deps = { executor = "executor", executor_requests = "executor_requests", std = "MoveStdlib", sui = "Sui", token_bridge = "TokenBridge", wormhole = "Wormhole" }
-
-[pinned.testnet.Wormhole]
-source = { git = "https://github.com/wormhole-foundation/wormhole.git", subdir = "sui/wormhole", rev = "b71be5cbb9537c4aac8e23e74371affa3825efcd" }
-use_environment = "testnet"
-manifest_digest = "6996F1AB8CD448FFBA142C085C488FE8A46B485E61E38A1891EFA52B30D9C12E"
-deps = { Sui = "Sui_1" }
 
 [pinned.testnet.executor]
 source = { git = "https://github.com/wormholelabs-xyz/example-messaging-executor.git", subdir = "sui/executor", rev = "2061262868ed420e911a54ef619dd9b00949beb1" }
@@ -132,6 +96,30 @@ deps = { executor = "executor", std = "MoveStdlib", sui = "Sui" }
 
 [pinned.testnet.sui_ptb_resolver]
 source = { git = "https://github.com/wormholelabs-xyz/sui-ptb-resolver.git", subdir = "sui_ptb_resolver", rev = "f9d2db60cd2b513057e29aff52c2959ecf27e54f" }
+use_environment = "testnet"
+manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
+deps = { std = "MoveStdlib", sui = "Sui" }
+
+[pinned.testnet.token_bridge]
+source = { git = "https://github.com/wormholelabs-xyz/wormhole.git", subdir = "sui/token_bridge", rev = "93c0282bc8aa60a3d07e7ab2575edcecd7a357f0" }
+use_environment = "testnet"
+manifest_digest = "A73251CFC2BBF48800A81E4C042274AE31BEC9DEEB3012564872655516DEE4D1"
+deps = { std = "MoveStdlib", sui = "Sui", wormhole = "wormhole" }
+
+[pinned.testnet.token_bridge_ptb_resolver]
+source = { root = true }
+use_environment = "testnet"
+manifest_digest = "7847CE4B4ED355FD65A3895FD4464282E49137C29423235958BACB2733F3922D"
+deps = { std = "MoveStdlib", sui = "Sui", sui_ptb_resolver = "sui_ptb_resolver", token_bridge = "token_bridge", token_bridge_relayer = "token_bridge_relayer", wormhole = "wormhole" }
+
+[pinned.testnet.token_bridge_relayer]
+source = { local = "../token_bridge_relayer" }
+use_environment = "testnet"
+manifest_digest = "9BE244CE2A94A4862E6837D52D8FDCEBDCE1DEA4A63F2B81BF1B679A9A292A5D"
+deps = { executor = "executor", executor_requests = "executor_requests", std = "MoveStdlib", sui = "Sui", token_bridge = "token_bridge", wormhole = "wormhole" }
+
+[pinned.testnet.wormhole]
+source = { git = "https://github.com/wormholelabs-xyz/wormhole.git", subdir = "sui/wormhole", rev = "93c0282bc8aa60a3d07e7ab2575edcecd7a357f0" }
 use_environment = "testnet"
 manifest_digest = "5745706258F61D6CE210904B3E6AE87A73CE9D31A6F93BE4718C442529332A87"
 deps = { std = "MoveStdlib", sui = "Sui" }
