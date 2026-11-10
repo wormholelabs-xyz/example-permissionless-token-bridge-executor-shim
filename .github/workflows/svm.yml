@@ -30,7 +30,7 @@ jobs:
         run: |
           ANCHOR_VERSION="$(awk '/anchor_version =/ { print substr($3, 2, length($3)-2) }' Anchor.toml)"
           echo "version=${ANCHOR_VERSION}" >> "$GITHUB_OUTPUT"
-      - uses: evan-gray/anchor-test@06370fbca011ee48b176211b8f858789d6c33282 # main
+      - uses: evan-gray/anchor-test@c267e0e6225eb1177512aac058d46feeac215189 # main
         with:
           node-version: "22.16.0"
           anchor-version: "${{steps.anchor.outputs.version}}"
