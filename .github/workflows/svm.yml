@@ -3,6 +3,9 @@ name: svm
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Anchor Test
@@ -14,18 +17,20 @@ jobs:
       run:
         working-directory: svm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Get solana version
         id: solana
         run: |
           SOLANA_VERSION="$(awk '/solana_version =/ { print substr($3, 2, length($3)-2) }' Anchor.toml)"
-          echo "::set-output name=version::${SOLANA_VERSION}"
+          echo "version=${SOLANA_VERSION}" >> "$GITHUB_OUTPUT"
       - name: Get anchor version
         id: anchor
         run: |
           ANCHOR_VERSION="$(awk '/anchor_version =/ { print substr($3, 2, length($3)-2) }' Anchor.toml)"
-          echo "::set-output name=version::${ANCHOR_VERSION}"
-      - uses: evan-gray/anchor-test@06370fbca011ee48b176211b8f858789d6c33282
+          echo "version=${ANCHOR_VERSION}" >> "$GITHUB_OUTPUT"
+      - uses: evan-gray/anchor-test@c267e0e6225eb1177512aac058d46feeac215189 # main
         with:
           node-version: "22.16.0"
           anchor-version: "${{steps.anchor.outputs.version}}"

@@ -5,6 +5,9 @@ on: pull_request
 env:
   FOUNDRY_PROFILE: ci
 
+permissions:
+  contents: read
+
 jobs:
   check:
     strategy:
@@ -16,12 +19,13 @@ jobs:
       run:
         working-directory: evm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           submodules: recursive
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@dba66c27052e63476d886f22216e119ba7e615bf # v1.9.2
         with:
           version: v1.3.6
 

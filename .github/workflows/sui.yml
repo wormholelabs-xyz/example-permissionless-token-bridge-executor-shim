@@ -2,13 +2,18 @@ name: sui
 
 on: pull_request
 
+permissions:
+  contents: read
+
 jobs:
   sui-test:
     name: Run Build and Tests
     runs-on: ubuntu-latest
     container: mysten/sui-tools:mainnet-v1.63.4@sha256:1c2b1c7a46e7584d1edd8875651bcbbc20a198fc2e80cf56304c608d65b17e98
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Test Sui Token Bridge Relayer v4
         working-directory: sui/token_bridge_relayer
         run: |
