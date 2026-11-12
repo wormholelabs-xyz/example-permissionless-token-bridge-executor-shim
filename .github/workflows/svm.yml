@@ -32,7 +32,7 @@ jobs:
           echo "version=${ANCHOR_VERSION}" >> "$GITHUB_OUTPUT"
       - uses: evan-gray/anchor-test@c267e0e6225eb1177512aac058d46feeac215189 # main
         with:
-          node-version: "22.16.0"
+          node-version: "26.13.0"
           anchor-version: "${{steps.anchor.outputs.version}}"
           solana-cli-version: "${{steps.solana.outputs.version}}"
           working-directory: "svm"
